@@ -21,6 +21,12 @@ void Player::Initialize()
 
 	// ヒットSE読み込み
 	hitSE = Audio::Instance().LoadAudioSource("Data/Sound/Hit.wav");
+
+	status.hp = 100.0f;
+	status.attack = 10.0f;
+	status.defense = 5.0f;
+	status.critRate = 0.05f;
+	status.critDamage = 1.5f;
 }
 
 // 終了化
@@ -110,6 +116,15 @@ void Player::DrawDebugGUI()
 			ImGui::InputFloat3("Scale", &scale.x);
 		}
 	}
+		if (ImGui::CollapsingHeader("Status", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Text("HP        : %.1f", status.hp);
+			ImGui::Text("Attack        : %.1f", status.attack);
+			ImGui::Text("Defense       : %.1f", status.defense);
+			ImGui::Text("Crit Rate     : %.1f%%", status.critRate * 100.0f);
+			ImGui::Text("Crit Damage   : x%.2f", status.critDamage);
+		}
+	
 	ImGui::End();
 }
 
@@ -168,11 +183,12 @@ void Player::InputMove(float elapsedTime)
 	// 進行ベクトル取得
 	DirectX::XMFLOAT3 moveVec = GetMoveVec();
 
-	// 移動処理
-	Move(elapsedTime, moveVec.x, moveVec.z, moveSpeed);
+	Player::position.z += 0.05f;
 
-	// 旋回処理
-	Turn(elapsedTime, moveVec.x, moveVec.z, turnSpeed);
+	if (Player::position.z >= 50.0f)
+	{
+		Player::position.z = 0.0f;
+	}
 }
 
 // プレイヤーとエネミーとの衝突処理

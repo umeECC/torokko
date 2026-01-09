@@ -6,6 +6,17 @@
 #include "ProjectileManager.h"
 #include "Effect.h"
 
+struct PlayerStatus
+{
+	float hp = 100.0f;           //HP
+	float attack = 10.0f;        // 攻撃力
+	float defense = 5.0f;        // 防御力
+	float critDamage = 1.5f;     // クリティカル倍率
+	float critRate = 0.05f;      // クリティカル率（0.0 ～ 1.0）
+};
+
+
+
 // プレイヤー
 class Player : public Character
 {
@@ -38,6 +49,9 @@ public:
 
 	// デバッグ用GUI描画
 	void DrawDebugGUI();
+
+	const PlayerStatus& GetStatus() const { return status; }
+
 
 private:
 	// スティック入力値から移動ベクトルを取得
@@ -72,4 +86,6 @@ private:
 	ProjectileManager	projectileManager;
 	Effect*				hitEffect = nullptr;
 	AudioSource*		hitSE = nullptr;
+
+	PlayerStatus status;
 };
