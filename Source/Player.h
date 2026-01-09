@@ -6,6 +6,22 @@
 #include "ProjectileManager.h"
 #include "Effect.h"
 
+
+enum class AreaType
+{
+	None,
+	AttackGrow,
+	DefenseGrow,
+	CritRateGrow,
+	CritDamageGrow,
+	BalancedGrow,
+	Jackpot
+};
+
+
+
+
+
 struct PlayerStatus
 {
 	float hp = 100.0f;           //HP
@@ -53,6 +69,9 @@ public:
 	const PlayerStatus& GetStatus() const { return status; }
 
 
+
+	//ステータス設定
+	void ApplyAreaGrowth(AreaType area);
 private:
 	// スティック入力値から移動ベクトルを取得
 	DirectX::XMFLOAT3 GetMoveVec() const;
@@ -72,9 +91,14 @@ private:
 	// 弾丸入力処理
 	void InputProjectile();
 
+
+
 protected:
 	// 着地した時に呼ばれる
 	void OnLanding() override;
+
+
+
 
 private:
 	Model*	model = nullptr;
@@ -88,4 +112,6 @@ private:
 	AudioSource*		hitSE = nullptr;
 
 	PlayerStatus status;
+
+	int currentAreaIndex = -1;
 };

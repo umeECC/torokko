@@ -8,6 +8,27 @@
 #include "ProjectileStraight.h"
 #include "ProjectileHoming.h"
 
+
+static const float AREA_LENGTH = 50.0f;
+static const int AREA_COUNT = 7;
+
+static AreaType GetAreaTypeFromIndex(int index)
+{
+	switch (index % AREA_COUNT)
+	{
+	case 0: return AreaType::AttackGrow;
+	case 1: return AreaType::DefenseGrow;
+	case 2: return AreaType::CritRateGrow;
+	case 3: return AreaType::CritDamageGrow;
+	case 4: return AreaType::BalancedGrow;
+	case 5: return AreaType::AttackGrow;
+	case 6: return AreaType::Jackpot;
+	default: return AreaType::None;
+	}
+}
+
+
+
 // 初期化
 void Player::Initialize() 
 {
@@ -68,6 +89,18 @@ void Player::Update(float elapsedTime)
 
 	// モデル行列更新
 	model->UpdateTransform();
+
+
+	// ===== エリア侵入判定 =====
+	int areaIndex = static_cast<int>(position.z / AREA_LENGTH);
+
+	if (areaIndex != currentAreaIndex)
+	{
+		currentAreaIndex = areaIndex;
+
+		AreaType area = GetAreaTypeFromIndex(areaIndex);
+		ApplyAreaGrowth(area);
+	}
 }
 
 // 描画処理
@@ -124,7 +157,10 @@ void Player::DrawDebugGUI()
 			ImGui::Text("Crit Rate     : %.1f%%", status.critRate * 100.0f);
 			ImGui::Text("Crit Damage   : x%.2f", status.critDamage);
 		}
-	
+
+
+		ImGui::Text("Area Index : %d", currentAreaIndex);
+
 	ImGui::End();
 }
 
@@ -185,10 +221,10 @@ void Player::InputMove(float elapsedTime)
 
 	Player::position.z += 0.05f;
 
-	if (Player::position.z >= 50.0f)
-	{
-		Player::position.z = 0.0f;
-	}
+	//if (Player::position.z >= 50.0f)
+	//{
+	//	Player::position.z = 0.0f;
+	//}
 }
 
 // プレイヤーとエネミーとの衝突処理
@@ -392,4 +428,49 @@ void Player::InputProjectile()
 void Player::OnLanding()
 {
 	jumpCount = 0;
+}
+
+
+
+
+
+void Player::ApplyAreaGrowth(AreaType area)
+{
+	switch (area)
+	{
+	case AreaType::AttackGrow:
+		status.attack += 3.0f;
+		break;
+
+	case AreaType::DefenseGrow:
+		status.defense += 2.0f;
+		break;
+
+	case AreaType::CritRateGrow:
+		status.critRate += 0.02f;
+		if (status.critRate > 0.8f)
+			status.critRate = 0.8f;
+		break;
+
+	case AreaType::CritDamageGrow:
+		status.critDamage += 0.25f;
+		break;
+
+	case AreaType::BalancedGrow:
+		status.attack += 1.5f;
+		status.defense += 1.5f;
+		status.critRate += 0.01f;
+		status.critDamage += 0.15f;
+		break;
+
+	case AreaType::Jackpot:
+		status.attack += 8.0f;
+		status.defense += 6.0f;
+		status.critRate += 0.08f;
+		status.critDamage += 0.5f;
+		break;
+
+	default:
+		break;
+	}
 }
