@@ -1,4 +1,4 @@
-#include <imgui.h>
+ï»¿#include <imgui.h>
 #include "Player.h"
 #include "System/Input.h"
 #include "System/Audio.h"
@@ -12,35 +12,35 @@
 static const float AREA_LENGTH = 50.0f;
 static const int AREA_COUNT = 7;
 
-static AreaType GetAreaTypeFromIndex(int index)
+static AreaType GetRandomGrowArea()
 {
-	switch (index % AREA_COUNT)
+	int r = rand() % 5; // Jackpoté™¤å¤–
+	switch (r)
 	{
 	case 0: return AreaType::AttackGrow;
 	case 1: return AreaType::DefenseGrow;
 	case 2: return AreaType::CritRateGrow;
 	case 3: return AreaType::CritDamageGrow;
 	case 4: return AreaType::BalancedGrow;
-	case 5: return AreaType::AttackGrow;
-	case 6: return AreaType::Jackpot;
-	default: return AreaType::None;
+	default: return AreaType::AttackGrow;
 	}
 }
 
 
 
-// ‰Šú‰»
+
+// åˆæœŸåŒ–
 void Player::Initialize() 
 {
 	model = new Model("Data/Model/Mr.Incredible/Mr.Incredible.mdl");
 
-	// ƒ‚ƒfƒ‹‚ª‘å‚«‚¢‚Ì‚ÅƒXƒP[ƒŠƒ“ƒO
+	// ãƒ¢ãƒ‡ãƒ«ãŒå¤§ãã„ã®ã§ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°
 	scale.x = scale.y = scale.z = 0.01f;
 
-	// ƒqƒbƒgƒGƒtƒFƒNƒg“Ç‚İ‚İ
+	// ãƒ’ãƒƒãƒˆã‚¨ãƒ•ã‚§ã‚¯ãƒˆèª­ã¿è¾¼ã¿
 	hitEffect = new Effect("Data/Effect/Hit.efk");
 
-	// ƒqƒbƒgSE“Ç‚İ‚İ
+	// ãƒ’ãƒƒãƒˆSEèª­ã¿è¾¼ã¿
 	hitSE = Audio::Instance().LoadAudioSource("Data/Sound/Hit.wav");
 
 	status.hp = 100.0f;
@@ -50,7 +50,7 @@ void Player::Initialize()
 	status.critDamage = 1.5f;
 }
 
-// I—¹‰»
+// çµ‚äº†åŒ–
 void Player::Finalize() 
 {
 	delete hitSE;
@@ -60,83 +60,143 @@ void Player::Finalize()
 	delete model;
 }
 
-// XVˆ—
+// æ›´æ–°å‡¦ç†
 void Player::Update(float elapsedTime)
 {
-	// ˆÚ“®“ü—Íˆ—
+
+	
+	// ç§»å‹•å…¥åŠ›å‡¦ç†
 	InputMove(elapsedTime);
 
-	// ƒWƒƒƒ“ƒv“ü—Íˆ—
+	// ã‚¸ãƒ£ãƒ³ãƒ—å…¥åŠ›å‡¦ç†
 	InputJump();
 
-	// ’eŠÛ“ü—Íˆ—
+	// å¼¾ä¸¸å…¥åŠ›å‡¦ç†
 	InputProjectile();
 
-	// ‘¬—Íˆ—XV
+	// é€ŸåŠ›å‡¦ç†æ›´æ–°
 	UpdateVelocity(elapsedTime);
 
-	// ’eŠÛXVˆ—
+	// å¼¾ä¸¸æ›´æ–°å‡¦ç†
 	projectileManager.Update(elapsedTime);
 
-	// ƒvƒŒƒCƒ„[‚Æ“G‚Æ‚ÌÕ“Ëˆ—
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨æ•µã¨ã®è¡çªå‡¦ç†
 	CollisionPlayerVsEnemies();
 
-	// ’eŠÛ‚Æ“G‚ÌÕ“Ëˆ—
+	// å¼¾ä¸¸ã¨æ•µã®è¡çªå‡¦ç†
 	CollisionProjectilesVsEnemies();
 
-	// ƒIƒuƒWƒFƒNƒgs—ñ‚ğXV
+	// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆè¡Œåˆ—ã‚’æ›´æ–°
 	UpdateTransform();
 
-	// ƒ‚ƒfƒ‹s—ñXV
+	// ãƒ¢ãƒ‡ãƒ«è¡Œåˆ—æ›´æ–°
 	model->UpdateTransform();
 
+	// ===== â‘  ã‚¨ãƒªã‚¢é¸æŠä¸­ã®å…¥åŠ›å‡¦ç† =====
+	if (isChoosingAreaBonus)
+	{
+		
 
-	// ===== ƒGƒŠƒAN“ü”»’è =====
+		if (GetAsyncKeyState('A') & 0x8000)
+		{
+			selectedArea = choiceA;
+		}
+		if (GetAsyncKeyState('D') & 0x8000)
+		{
+			selectedArea = choiceB;
+		}
+	}
+
+	// ===== â‘¡ é€šå¸¸ç§»å‹•ãƒ»è¡Œå‹•ï¼ˆæ­¢ã‚ãªã„ï¼‰=====
+	InputMove(elapsedTime);
+	InputJump();
+	InputProjectile();
+
+	UpdateVelocity(elapsedTime);
+
+	projectileManager.Update(elapsedTime);
+
+	CollisionPlayerVsEnemies();
+	CollisionProjectilesVsEnemies();
+
+	UpdateTransform();
+	model->UpdateTransform();
+
+	// ===== â‘¢ ã‚¨ãƒªã‚¢ä¾µå…¥åˆ¤å®š =====
 	int areaIndex = static_cast<int>(position.z / AREA_LENGTH);
-
 	if (areaIndex != currentAreaIndex)
 	{
 		currentAreaIndex = areaIndex;
+		BeginAreaChoice();
+	}
 
-		AreaType area = GetAreaTypeFromIndex(areaIndex);
-		ApplyAreaGrowth(area);
+	// ===== â‘£ ç¢ºå®šåˆ¤å®š =====
+	if (isChoosingAreaBonus && position.z >= areaDecisionZ)
+	{
+		ApplyAreaGrowth(selectedArea);
+		isChoosingAreaBonus = false;
 	}
 }
 
-// •`‰æˆ—
+
+// æç”»å‡¦ç†
 void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
 	renderer->Render(rc, transform, model, ShaderId::Lambert);
 
-	// ’eŠÛ•`‰æˆ—
+	// å¼¾ä¸¸æç”»å‡¦ç†
 	projectileManager.Render(rc, renderer);
 }
 
-// ƒfƒoƒbƒOƒvƒŠƒ~ƒeƒBƒu•`‰æ
+// ãƒ‡ãƒãƒƒã‚°ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–æç”»
 void Player::RenderDebugPrimitive(const RenderContext& rc, ShapeRenderer* renderer)
 {
-	// Šî’êƒNƒ‰ƒX‚ÌŠÖ”ŒÄ‚Ño‚µ
+	// åŸºåº•ã‚¯ãƒ©ã‚¹ã®é–¢æ•°å‘¼ã³å‡ºã—
 	Character::RenderDebugPrimitive(rc, renderer);
 
-	// ’eŠÛƒfƒoƒbƒOƒvƒŠƒ~ƒeƒBƒu•`‰æ
+	// å¼¾ä¸¸ãƒ‡ãƒãƒƒã‚°ãƒ—ãƒªãƒŸãƒ†ã‚£ãƒ–æç”»
 	projectileManager.RenderDebugPrimitive(rc, renderer);
 }
 
-// ƒfƒoƒbƒO—pGUI•`‰æ
+// ãƒ‡ãƒãƒƒã‚°ç”¨GUIæç”»
 void Player::DrawDebugGUI()
 {
 	ImVec2 pos = ImGui::GetMainViewport()->GetWorkPos();
 	ImGui::SetNextWindowPos(ImVec2(pos.x + 10, pos.y + 10), ImGuiCond_Once);
 	ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
 
+
+
+	auto DrawAreaText = [](AreaType type)
+		{
+			switch (type)
+			{
+			case AreaType::AttackGrow: ImGui::Text("Attack Up"); break;
+			case AreaType::DefenseGrow: ImGui::Text("Defense Up"); break;
+			case AreaType::CritRateGrow: ImGui::Text("Crit Rate Up"); break;
+			case AreaType::CritDamageGrow: ImGui::Text("Crit Damage Up"); break;
+			case AreaType::BalancedGrow: ImGui::Text("Balanced Up"); break;
+			case AreaType::Jackpot: ImGui::Text("JACKPOT!!"); break;
+			default: break;
+			}
+		};
+
+
+
+
+
+
+
+
+
 	if (ImGui::Begin("Player", nullptr, ImGuiWindowFlags_None))
 	{
-		// ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€
+		// ãƒˆãƒ©ãƒ³ã‚¹ãƒ•ã‚©ãƒ¼ãƒ 
 		if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			// ˆÊ’u
+			// ä½ç½®
 			ImGui::InputFloat3("Position", &position.x);
-			// ‰ñ“]
+			// å›è»¢
 			DirectX::XMFLOAT3 a;
 			a.x = DirectX::XMConvertToDegrees(angle.x);
 			a.y = DirectX::XMConvertToDegrees(angle.y);
@@ -145,7 +205,7 @@ void Player::DrawDebugGUI()
 			angle.x = DirectX::XMConvertToRadians(a.x);
 			angle.y = DirectX::XMConvertToRadians(a.y);
 			angle.z = DirectX::XMConvertToRadians(a.z);
-			// ƒXƒP[ƒ‹
+			// ã‚¹ã‚±ãƒ¼ãƒ«
 			ImGui::InputFloat3("Scale", &scale.x);
 		}
 	}
@@ -161,62 +221,97 @@ void Player::DrawDebugGUI()
 
 		ImGui::Text("Area Index : %d", currentAreaIndex);
 
+
+		if (isChoosingAreaBonus)
+		{
+			ImGui::Separator();
+			ImGui::Text("Choose Area Growth");
+			ImGui::Text("LEFT / RIGHT to switch");
+			ImGui::Text("Auto confirm soon");
+
+			ImGui::Separator();
+
+			// === Choice A ===
+			if (selectedArea == choiceA)
+				ImGui::TextColored(ImVec4(0, 1, 0, 1), "â–¶ A");
+			else
+				ImGui::Text("  A");
+
+			ImGui::SameLine();
+			DrawAreaText(choiceA);
+
+			// === Choice B ===
+			if (selectedArea == choiceB)
+				ImGui::TextColored(ImVec4(0, 1, 0, 1), "â–¶ B");
+			else
+				ImGui::Text("  B");
+
+			ImGui::SameLine();
+			DrawAreaText(choiceB);
+
+			ImGui::Separator();
+			ImGui::Text("Current Selected :");
+
+			DrawAreaText(selectedArea);
+		}
+
+
 	ImGui::End();
 }
 
-// ƒXƒeƒBƒbƒN“ü—Í’l‚©‚çˆÚ“®ƒxƒNƒgƒ‹‚ğæ“¾
+// ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›å€¤ã‹ã‚‰ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«ã‚’å–å¾—
 DirectX::XMFLOAT3 Player::GetMoveVec() const
 {
-	// “ü—Íî•ñ‚ğæ“¾
+	// å…¥åŠ›æƒ…å ±ã‚’å–å¾—
 	GamePad& gamePad = Input::Instance().GetGamePad();
 	float ax = gamePad.GetAxisLX();
 	float ay = gamePad.GetAxisLY();
 
-	// ƒJƒƒ‰•ûŒü‚ÆƒXƒeƒBƒbƒN‚Ì“ü—Í’l‚É‚æ‚Á‚Äis•ûŒü‚ğŒvZ‚·‚é
+	// ã‚«ãƒ¡ãƒ©æ–¹å‘ã¨ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã®å…¥åŠ›å€¤ã«ã‚ˆã£ã¦é€²è¡Œæ–¹å‘ã‚’è¨ˆç®—ã™ã‚‹
 	Camera& camera = Camera::Instance();
 	const DirectX::XMFLOAT3& cameraRight = camera.GetRight();
 	const DirectX::XMFLOAT3& cameraFront = camera.GetFront();
 
-	// ˆÚ“®ƒxƒNƒgƒ‹‚ÍXZ•½–Ê‚É…•½‚ÈƒxƒNƒgƒ‹‚É‚È‚é‚æ‚¤‚É‚·‚é
+	// ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«ã¯XZå¹³é¢ã«æ°´å¹³ãªãƒ™ã‚¯ãƒˆãƒ«ã«ãªã‚‹ã‚ˆã†ã«ã™ã‚‹
 
-	// ƒJƒƒ‰‰E•ûŒüƒxƒNƒgƒ‹‚ğXZ’PˆÊƒxƒNƒgƒ‹‚É•ÏŠ·
+	// ã‚«ãƒ¡ãƒ©å³æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã‚’XZå˜ä½ãƒ™ã‚¯ãƒˆãƒ«ã«å¤‰æ›
 	float cameraRightX = cameraRight.x;
 	float cameraRightZ = cameraRight.z;
 	float cameraRightLength = sqrtf(cameraRightX * cameraRightX + cameraRightZ * cameraRightZ);
 	if (cameraRightLength > 0.0f)
 	{
-		// ’PˆÊƒxƒNƒgƒ‹‰»
+		// å˜ä½ãƒ™ã‚¯ãƒˆãƒ«åŒ–
 		cameraRightX /= cameraRightLength;
 		cameraRightZ /= cameraRightLength;
 	}
 
-	// ƒJƒƒ‰‘O•ûŒüƒxƒNƒgƒ‹‚ğXZ’PˆÊƒxƒNƒgƒ‹‚É•ÏŠ·
+	// ã‚«ãƒ¡ãƒ©å‰æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã‚’XZå˜ä½ãƒ™ã‚¯ãƒˆãƒ«ã«å¤‰æ›
 	float cameraFrontX = cameraFront.x;
 	float cameraFrontZ = cameraFront.z;
 	float cameraFrontLength = sqrtf(cameraFrontX * cameraFrontX + cameraFrontZ * cameraFrontZ);
 	if (cameraFrontLength > 0.0f)
 	{
-		// ’PˆÊƒxƒNƒgƒ‹‰»
+		// å˜ä½ãƒ™ã‚¯ãƒˆãƒ«åŒ–
 		cameraFrontX /= cameraFrontLength;
 		cameraFrontZ /= cameraFrontLength;
 	}
 
-	// ƒXƒeƒBƒbƒN‚Ì…•½“ü—Í’l‚ğƒJƒƒ‰‰E•ûŒü‚É”½‰f‚µA
-	// ƒXƒeƒBƒbƒN‚Ì‚’¼“ü—Í’l‚ğƒJƒƒ‰‘O•ûŒü‚É”½‰f‚µA
-	// isƒxƒNƒgƒ‹‚ğŒvZ‚·‚é
+	// ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã®æ°´å¹³å…¥åŠ›å€¤ã‚’ã‚«ãƒ¡ãƒ©å³æ–¹å‘ã«åæ˜ ã—ã€
+	// ã‚¹ãƒ†ã‚£ãƒƒã‚¯ã®å‚ç›´å…¥åŠ›å€¤ã‚’ã‚«ãƒ¡ãƒ©å‰æ–¹å‘ã«åæ˜ ã—ã€
+	// é€²è¡Œãƒ™ã‚¯ãƒˆãƒ«ã‚’è¨ˆç®—ã™ã‚‹
 	DirectX::XMFLOAT3 vec;
 	vec.x = (cameraRightX * ax) + (cameraFrontX * ay);
 	vec.z = (cameraRightZ * ax) + (cameraFrontZ * ay);
-	// Y²•ûŒü‚É‚ÍˆÚ“®‚µ‚È‚¢
+	// Yè»¸æ–¹å‘ã«ã¯ç§»å‹•ã—ãªã„
 	vec.y = 0.0f;
 
 	return vec;
 }
 
-// ˆÚ“®“ü—Íˆ—
+// ç§»å‹•å…¥åŠ›å‡¦ç†
 void Player::InputMove(float elapsedTime)
 {
-	// isƒxƒNƒgƒ‹æ“¾
+	// é€²è¡Œãƒ™ã‚¯ãƒˆãƒ«å–å¾—
 	DirectX::XMFLOAT3 moveVec = GetMoveVec();
 
 	Player::position.z += 0.05f;
@@ -227,18 +322,18 @@ void Player::InputMove(float elapsedTime)
 	//}
 }
 
-// ƒvƒŒƒCƒ„[‚ÆƒGƒlƒ~[‚Æ‚ÌÕ“Ëˆ—
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã‚¨ãƒãƒŸãƒ¼ã¨ã®è¡çªå‡¦ç†
 void Player::CollisionPlayerVsEnemies()
 {
 	EnemyManager& enemyManager = EnemyManager::Instance();
 
-	// ‘S‚Ä‚Ì“G‚Æ‘“–‚½‚è‚ÅÕ“Ëˆ—
+	// å…¨ã¦ã®æ•µã¨ç·å½“ãŸã‚Šã§è¡çªå‡¦ç†
 	int enemyCount = enemyManager.GetEnemyCount();
 	for (int i = 0; i < enemyCount; ++i)
 	{
 		Enemy* enemy = enemyManager.GetEnemy(i);
 
-		// Õ“Ëˆ—
+		// è¡çªå‡¦ç†
 		DirectX::XMFLOAT3 outPosition;
 		if (Collision::IntersectCylinderVsCylinder(
 			position,
@@ -249,22 +344,22 @@ void Player::CollisionPlayerVsEnemies()
 			enemy->GetHeight(),
 			outPosition))
 		{
-			// “G‚Ì^ã•t‹ß‚É“–‚½‚Á‚½‚©‚ğ”»’è
+			// æ•µã®çœŸä¸Šä»˜è¿‘ã«å½“ãŸã£ãŸã‹ã‚’åˆ¤å®š
 			DirectX::XMVECTOR P = DirectX::XMLoadFloat3(&position);
 			DirectX::XMVECTOR E = DirectX::XMLoadFloat3(&enemy->GetPosition());
 			DirectX::XMVECTOR V = DirectX::XMVectorSubtract(P, E);
 			DirectX::XMVECTOR N = DirectX::XMVector3Normalize(V);
 			DirectX::XMFLOAT3 normal;
 			DirectX::XMStoreFloat3(&normal, N);
-			// ã‚©‚ç“¥‚ñ‚Ã‚¯‚½ê‡‚Í¬ƒWƒƒƒ“ƒv‚·‚é
+			// ä¸Šã‹ã‚‰è¸ã‚“ã¥ã‘ãŸå ´åˆã¯å°ã‚¸ãƒ£ãƒ³ãƒ—ã™ã‚‹
 			if (normal.y > 0.8f)
 			{
-				// ¬ƒWƒƒƒ“ƒv‚·‚é
+				// å°ã‚¸ãƒ£ãƒ³ãƒ—ã™ã‚‹
 				Jump(jumpSpeed * 0.5f);
 			}
 			else
 			{
-				// ‰Ÿ‚µo‚µŒã‚ÌˆÊ’uİ’è
+				// æŠ¼ã—å‡ºã—å¾Œã®ä½ç½®è¨­å®š
 				enemy->SetPosition(outPosition);
 			}
 		}
@@ -272,12 +367,12 @@ void Player::CollisionPlayerVsEnemies()
 	}
 }
 
-// ’eŠÛ‚Æ“G‚ÌÕ“Ëˆ—
+// å¼¾ä¸¸ã¨æ•µã®è¡çªå‡¦ç†
 void Player::CollisionProjectilesVsEnemies()
 {
 	EnemyManager& enemyManager = EnemyManager::Instance();
 
-	// ‘S‚Ä‚Ì’eŠÛ‚Æ‘S‚Ä‚Ì“G‚ğ‘“–‚½‚è‚ÅÕ“Ëˆ—
+	// å…¨ã¦ã®å¼¾ä¸¸ã¨å…¨ã¦ã®æ•µã‚’ç·å½“ãŸã‚Šã§è¡çªå‡¦ç†
 	int projectileCount = projectileManager.GetProjectileCount();
 	int enemyCount = enemyManager.GetEnemyCount();
 	for (int i = 0; i < projectileCount; ++i)
@@ -288,7 +383,7 @@ void Player::CollisionProjectilesVsEnemies()
 		{
 			Enemy* enemy = enemyManager.GetEnemy(j);
 
-			// Õ“Ëˆ—
+			// è¡çªå‡¦ç†
 			DirectX::XMFLOAT3 outPosition;
 			if (Collision::IntersectSphereVsCylinder(
 				projectile->GetPosition(),
@@ -298,10 +393,10 @@ void Player::CollisionProjectilesVsEnemies()
 				enemy->GetHeight(),
 				outPosition))
 			{
-				// ƒ_ƒ[ƒW‚ğ—^‚¦‚é
+				// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸ãˆã‚‹
 				if (enemy->ApplyDamage(1, 0.5f))
 				{
-					// ‚«”ò‚Î‚·
+					// å¹ãé£›ã°ã™
 					{
 						DirectX::XMFLOAT3 impulse;
 						const float power = 10.0f;
@@ -319,16 +414,16 @@ void Player::CollisionProjectilesVsEnemies()
 
 						enemy->AddImpulse(impulse);
 					}
-					// ƒqƒbƒgƒGƒtƒFƒNƒgÄ¶
+					// ãƒ’ãƒƒãƒˆã‚¨ãƒ•ã‚§ã‚¯ãƒˆå†ç”Ÿ
 					{
 						DirectX::XMFLOAT3 e = enemy->GetPosition();
 						e.y += enemy->GetHeight() * 0.5f;
 						hitEffect->Play(e);
 					}
-					// ƒqƒbƒgSEÄ¶
+					// ãƒ’ãƒƒãƒˆSEå†ç”Ÿ
 					hitSE->Play(false);
 
-					// ’eŠÛ”jŠü
+					// å¼¾ä¸¸ç ´æ£„
 					projectile->Destroy();
 				}
 			}
@@ -336,73 +431,73 @@ void Player::CollisionProjectilesVsEnemies()
 	}
 }
 
-// ƒWƒƒƒ“ƒv“ü—Íˆ—
+// ã‚¸ãƒ£ãƒ³ãƒ—å…¥åŠ›å‡¦ç†
 void Player::InputJump()
 {
-	// ƒ{ƒ^ƒ““ü—Í‚ÅƒWƒƒƒ“ƒviƒWƒƒƒ“ƒv‰ñ”§ŒÀ‚Â‚«j
+	// ãƒœã‚¿ãƒ³å…¥åŠ›ã§ã‚¸ãƒ£ãƒ³ãƒ—ï¼ˆã‚¸ãƒ£ãƒ³ãƒ—å›æ•°åˆ¶é™ã¤ãï¼‰
 	GamePad& gamePad = Input::Instance().GetGamePad();
 	if (gamePad.GetButtonDown() & GamePad::BTN_A)
 	{
-		// ƒWƒƒƒ“ƒv‰ñ”§ŒÀ
+		// ã‚¸ãƒ£ãƒ³ãƒ—å›æ•°åˆ¶é™
 		if (jumpCount < jumpLimit)
 		{
-			// ƒWƒƒƒ“ƒv
+			// ã‚¸ãƒ£ãƒ³ãƒ—
 			jumpCount++;
 			Jump(jumpSpeed);
 		}
 	}
 }
 
-// ’eŠÛ“ü—Íˆ—
+// å¼¾ä¸¸å…¥åŠ›å‡¦ç†
 void Player::InputProjectile()
 {
 	GamePad& gamePad = Input::Instance().GetGamePad();
 
-	// ’¼i’eŠÛ”­Ë
+	// ç›´é€²å¼¾ä¸¸ç™ºå°„
 	if (gamePad.GetButtonDown() & GamePad::BTN_X)
 	{
-		// ‘O•ûŒü
+		// å‰æ–¹å‘
 		DirectX::XMFLOAT3 dir;
 		dir.x = sinf(angle.y);
 		dir.y = 0.0f;
 		dir.z = cosf(angle.y);
-		// ”­ËˆÊ’uiƒvƒŒƒCƒ„[‚Ì˜‚ ‚½‚èj
+		// ç™ºå°„ä½ç½®ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®è…°ã‚ãŸã‚Šï¼‰
 		DirectX::XMFLOAT3 pos;
 		pos.x = position.x;
 		pos.y = position.y + height * 0.5f;
 		pos.z = position.z;
-		// ”­Ë
+		// ç™ºå°„
 		ProjectileStraight* projectile = new ProjectileStraight(&projectileManager);
 		projectile->Launch(dir, pos);
 	}
-	// ’Ç”ö’eŠÛ”­Ë
+	// è¿½å°¾å¼¾ä¸¸ç™ºå°„
 	if (gamePad.GetButtonDown() & GamePad::BTN_Y)
 	{
-		// ‘O•ûŒü
+		// å‰æ–¹å‘
 		DirectX::XMFLOAT3 dir;
 		dir.x = sinf(angle.y);
 		dir.y = 0.0f;
 		dir.z = cosf(angle.y);
 
-		// ”­ËˆÊ’uiƒvƒŒƒCƒ„[‚Ì˜‚ ‚½‚èj
+		// ç™ºå°„ä½ç½®ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®è…°ã‚ãŸã‚Šï¼‰
 		DirectX::XMFLOAT3 pos;
 		pos.x = position.x;
 		pos.y = position.y + height * 0.5f;
 		pos.z = position.z;
 
-		// ƒ^[ƒQƒbƒgiƒfƒtƒHƒ‹ƒg‚Å‚ÍƒvƒŒƒCƒ„[‚Ì‘O•ûj
+		// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã§ã¯ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‰æ–¹ï¼‰
 		DirectX::XMFLOAT3 target;
 		target.x = pos.x + dir.x * 1000.0f;
 		target.y = pos.y + dir.y * 1000.0f;
 		target.z = pos.z + dir.z * 1000.0f;
 
-		// ˆê”Ô‹ß‚­‚Ì“G‚ğƒ^[ƒQƒbƒg‚É‚·‚é
+		// ä¸€ç•ªè¿‘ãã®æ•µã‚’ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã«ã™ã‚‹
 		float dist = FLT_MAX;
 		EnemyManager& enemyManager = EnemyManager::Instance();
 		int enemyCount = enemyManager.GetEnemyCount();
 		for (int i = 0; i < enemyCount; ++i)
 		{
-			// “G‚Æ‚Ì‹——£”»’è
+			// æ•µã¨ã®è·é›¢åˆ¤å®š
 			Enemy* enemy = EnemyManager::Instance().GetEnemy(i);
 			DirectX::XMVECTOR P = DirectX::XMLoadFloat3(&position);
 			DirectX::XMVECTOR E = DirectX::XMLoadFloat3(&enemy->GetPosition());
@@ -418,13 +513,13 @@ void Player::InputProjectile()
 			}
 		}
 
-		// ”­Ë
+		// ç™ºå°„
 		ProjectileHoming* projectile = new ProjectileHoming(&projectileManager);
 		projectile->Launch(dir, pos, target);
 	}
 }
 
-// ’…’n‚µ‚½‚ÉŒÄ‚Î‚ê‚é
+// ç€åœ°ã—ãŸæ™‚ã«å‘¼ã°ã‚Œã‚‹
 void Player::OnLanding()
 {
 	jumpCount = 0;
@@ -473,4 +568,23 @@ void Player::ApplyAreaGrowth(AreaType area)
 	default:
 		break;
 	}
+}
+
+
+void Player::BeginAreaChoice()
+{
+	isChoosingAreaBonus = true;
+
+	// æˆé•·å€™è£œ2ã¤ç”Ÿæˆ
+	choiceA = GetRandomGrowArea();
+	do
+	{
+		choiceB = GetRandomGrowArea();
+	} while (choiceB == choiceA);
+
+	// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯A
+	selectedArea = choiceA;
+
+	// ç¢ºå®šZï¼ˆå°‘ã—å…ˆï¼‰
+	areaDecisionZ = position.z + AREA_LENGTH * 0.8f;
 }
