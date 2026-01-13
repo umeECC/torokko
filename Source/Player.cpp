@@ -531,6 +531,14 @@ void Player::OnLanding()
 
 void Player::ApplyAreaGrowth(AreaType area)
 {
+	if (area == lastSelectedArea && area != AreaType::None)
+	{
+		status.hp -= 10.0f;
+
+		if (status.hp < 0.0f)
+			status.hp = 0.0f;
+	}
+
 	switch (area)
 	{
 	case AreaType::AttackGrow:
@@ -568,6 +576,9 @@ void Player::ApplyAreaGrowth(AreaType area)
 	default:
 		break;
 	}
+
+	// ★ 最後に必ず更新
+	lastSelectedArea = area;
 }
 
 

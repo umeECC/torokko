@@ -124,6 +124,8 @@ private:
 	AreaType choiceA = AreaType::None;  // 左候補
 	AreaType choiceB = AreaType::None;  // 右候補
 	AreaType selectedArea = AreaType::None; // 現在選ばれている方
+	AreaType lastSelectedArea = AreaType::None; // 前回確定したエリア
+
 
 	float areaDecisionZ = 0.0f;         // このZを超えたら確定
 
