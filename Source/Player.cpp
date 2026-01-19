@@ -77,10 +77,10 @@ void Player::Initialize()
 	status.critDamage = 1.5f;
 	
 
-	trolleyOptions.push_back({ new Sprite("Data/Sprite/chip_win.png"), AreaType::AttackGrow });
-	trolleyOptions.push_back({ new Sprite("Data/Sprite/dissolve_animation.png"), AreaType::DefenseGrow });
-	trolleyOptions.push_back({ new Sprite("Data/Sprite/LoadingIcon.png"), AreaType::CritRateGrow });
-	trolleyOptions.push_back({ new Sprite("Data/Sprite/Title.png"), AreaType::CritDamageGrow });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/火山.png"), AreaType::AttackGrow });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/砂漠.png"), AreaType::DefenseGrow });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/氷山.png"), AreaType::CritRateGrow });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/洞窟.png"), AreaType::CritDamageGrow });
 	//trolleyOptions.push_back({ new Sprite("Data/Sprite/Jackpot.png"), AreaType::Jackpot });
 
 }
