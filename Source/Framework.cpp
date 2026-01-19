@@ -69,6 +69,46 @@ Framework::~Framework()
 	ReleaseDC(hWnd, hDC);
 }
 
+
+void Framework::ToggleFullScreen()
+{
+	isFullScreen_ = !isFullScreen_;
+
+	if (isFullScreen_)
+	{
+		// 現在のウィンドウスタイルと位置を保存
+		windowStyle_ = GetWindowLong(hWnd, GWL_STYLE);
+		GetWindowPlacement(hWnd, &windowPlacement_);
+
+		// 枠（タイトルバー・境界線）を削除
+		SetWindowLong(hWnd, GWL_STYLE, windowStyle_ & ~WS_OVERLAPPEDWINDOW);
+
+		// モニター情報を取得
+		HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+		MONITORINFO mi = { sizeof(mi) };
+		GetMonitorInfo(hMonitor, &mi);
+
+		// ウィンドウをモニター全体にリサイズ・移動
+		SetWindowPos(hWnd, HWND_TOP,
+			mi.rcMonitor.left, mi.rcMonitor.top,
+			mi.rcMonitor.right - mi.rcMonitor.left,
+			mi.rcMonitor.bottom - mi.rcMonitor.top,
+			SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	}
+	else
+	{
+		// スタイルとサイズを元に戻す
+		SetWindowLong(hWnd, GWL_STYLE, windowStyle_);
+		SetWindowPlacement(hWnd, &windowPlacement_);
+		SetWindowPos(hWnd, NULL, 0, 0, 0, 0,
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+			SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	}
+}
+
+
+
+
 // 更新処理
 void Framework::Update(float elapsedTime)
 {
@@ -157,6 +197,12 @@ int Framework::Run()
 		}
 		else
 		{
+			// --- F11キーで仮想フルスクリーン切り替え ---
+			if (GetAsyncKeyState(VK_F11) & 0x0001)  // 1回だけのトリガー
+			{
+				ToggleFullScreen();  // ← Frameworkクラスに実装しておいた関数
+			}
+
 			timer.Tick();
 			CalculateFrameStats();
 

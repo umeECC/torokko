@@ -79,7 +79,10 @@ public:
 
 	void SetStage(Stage* stage) { this->stage = stage; }
 
-	
+	void BeginAreaChoice();
+
+
+
 	//ステータス設定
 	void ApplyAreaGrowth(AreaType area);
 private:
@@ -138,4 +141,17 @@ private:
 	PlayerStatus status;
 
 	int currentAreaIndex = -1;
+
+
+
+	// ===== エリア成長関連 =====
+	bool isChoosingAreaBonus = false;   // 今、成長選択中か
+	AreaType choiceA = AreaType::None;  // 左候補
+	AreaType choiceB = AreaType::None;  // 右候補
+	AreaType selectedArea = AreaType::None; // 現在選ばれている方
+	AreaType lastSelectedArea = AreaType::None; // 前回確定したエリア
+
+
+	float areaDecisionZ = 0.0f;         // このZを超えたら確定
+
 };
