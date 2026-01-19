@@ -7,10 +7,38 @@
 #include "Collision.h"
 #include "ProjectileStraight.h"
 #include "ProjectileHoming.h"
+#include "Stage.h"
+#include <algorithm>
+#include <d3d11.h>
+#include <System/Graphics.h>
+
+
+#include <random>
+
+void Player::SelectRandomTrolleyImages()
+{
+	if (trolleySprites.size() < 2) return;
+
+	static std::random_device rd;
+	static std::mt19937 gen(rd());
+
+	std::uniform_int_distribution<> dist(0, trolleySprites.size() - 1);
+
+	int a = dist(gen);
+	int b;
+	do
+	{
+		b = dist(gen);
+	} while (b == a);
+
+	leftSprite = trolleySprites[a];
+	rightSprite = trolleySprites[b];
+}
 
 
 static const float AREA_LENGTH = 50.0f;
 static const int AREA_COUNT = 7;
+
 
 static AreaType GetAreaTypeFromIndex(int index)
 {
@@ -48,21 +76,31 @@ void Player::Initialize()
 	status.defense = 5.0f;
 	status.critRate = 0.05f;
 	status.critDamage = 1.5f;
+	
+	trolleySprites.push_back(new Sprite("Data/Sprite/chip_win.png"));
+	trolleySprites.push_back(new Sprite("Data/Sprite/dissolve_animation.png"));
+	trolleySprites.push_back(new Sprite("Data/Sprite/LoadingIcon.png"));
+	trolleySprites.push_back(new Sprite("Data/Sprite/Title.png"));
+
 }
 
 // 終了化
-void Player::Finalize() 
+void Player::Finalize()
 {
+	for (Sprite* s : trolleySprites)
+	{
+		delete s;
+	}
+	trolleySprites.clear();
+
 	delete hitSE;
-
 	delete hitEffect;
-
 	delete model;
 }
 
-// 更新処理
 void Player::Update(float elapsedTime)
 {
+
 	// 移動入力処理
 	InputMove(elapsedTime);
 
@@ -84,33 +122,96 @@ void Player::Update(float elapsedTime)
 	// 弾丸と敵の衝突処理
 	CollisionProjectilesVsEnemies();
 
+	// ===== ステージ制限 =====
+	if (stage)
+	{
+		if (position.z >= stage->GetMaxZ() && !showTrolleyUI && !trolleyChosen)
+		{
+			showTrolleyUI = true;
+			SelectRandomTrolleyImages();
+		}
+	}
+
+
 	// オブジェクト行列を更新
 	UpdateTransform();
 
 	// モデル行列更新
 	model->UpdateTransform();
 
-
 	// ===== エリア侵入判定 =====
 	int areaIndex = static_cast<int>(position.z / AREA_LENGTH);
-
 	if (areaIndex != currentAreaIndex)
 	{
 		currentAreaIndex = areaIndex;
-
-		AreaType area = GetAreaTypeFromIndex(areaIndex);
-		ApplyAreaGrowth(area);
+		ApplyAreaGrowth(GetAreaTypeFromIndex(areaIndex));
 	}
+	if (showTrolleyUI)
+	{
+		GamePad& gamePad = Input::Instance().GetGamePad();
+
+		if (gamePad.GetButtonDown() & GamePad::BTN_A)
+		{
+			trolleyChoice = TrolleyChoice::Left;
+			showTrolleyUI = false;
+			trolleyChosen = true;
+
+			// 左ルートへ
+			position.x -= 10.0f;
+		}
+		else if (gamePad.GetButtonDown() & GamePad::BTN_B)
+		{
+			trolleyChoice = TrolleyChoice::Right;
+			showTrolleyUI = false;
+			trolleyChosen = true;
+
+			// 右ルートへ
+			position.x += 10.0f;
+		}
+	}
+
 }
+
 
 // 描画処理
 void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
 	renderer->Render(rc, transform, model, ShaderId::Lambert);
-
-	// 弾丸描画処理
 	projectileManager.Render(rc, renderer);
+
+	if (showTrolleyUI)
+	{
+		if (!leftSprite || !rightSprite)
+			return;   // ← これが超重要
+
+		ImGuiIO& io = ImGui::GetIO();
+		float sw = io.DisplaySize.x;
+		float sh = io.DisplaySize.y;
+
+		float w = 400.0f;
+		float h = 300.0f;
+
+		leftSprite->Render(
+			rc,
+			sw * 0.25f - w * 0.5f,
+			sh * 0.5f - h * 0.5f,
+			0, w, h, 0,
+			1, 1, 1, 1
+		);
+
+		rightSprite->Render(
+			rc,
+			sw * 0.75f - w * 0.5f,
+			sh * 0.5f - h * 0.5f,
+			0, w, h, 0,
+			1, 1, 1, 1
+		);
+	}
+
 }
+
+
+
 
 // デバッグプリミティブ描画
 void Player::RenderDebugPrimitive(const RenderContext& rc, ShapeRenderer* renderer)

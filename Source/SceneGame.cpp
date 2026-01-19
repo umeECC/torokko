@@ -15,6 +15,10 @@ void SceneGame::Initialize()
 	// プレイヤー初期化
 	Player::Instance().Initialize();
 
+
+	// ★ ステージをプレイヤーにセット
+	Player::Instance().SetStage(stage);
+
 	// カメラ初期設定
 	Graphics& graphics = Graphics::Instance();
 	Camera& camera = Camera::Instance();

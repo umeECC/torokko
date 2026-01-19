@@ -5,6 +5,13 @@ Stage::Stage()
 {
 	// ステージモデルを読み込み
 	model = new Model("Data/Model/Stage/untitled.mdl");
+	// untitled.mdl の実寸に合わせて調整
+	minX = -25.0f;
+	maxX = 25.0f;
+	minZ = 0.0f;
+	maxZ = 20.0f;
+	floorY = 0.0f;
+
 }
 
 Stage::~Stage()
@@ -18,7 +25,6 @@ void Stage::Update(float elapsedTime)
 {
 	// 今は特にやることはない
 }
-
 
 // 描画処理
 void Stage::Render(const RenderContext& rc, ModelRenderer* renderer)
