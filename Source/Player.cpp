@@ -15,12 +15,11 @@
 
 void Player::SelectRandomTrolleyImages()
 {
-	if (trolleySprites.size() < 2) return;
+	if (trolleyOptions.size() < 2) return;
 
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
-
-	std::uniform_int_distribution<> dist(0, trolleySprites.size() - 1);
+	std::uniform_int_distribution<> dist(0, trolleyOptions.size() - 1);
 
 	int a = dist(gen);
 	int b;
@@ -29,9 +28,10 @@ void Player::SelectRandomTrolleyImages()
 		b = dist(gen);
 	} while (b == a);
 
-	leftSprite = trolleySprites[a];
-	rightSprite = trolleySprites[b];
+	leftOption = &trolleyOptions[a];
+	rightOption = &trolleyOptions[b];
 }
+
 
 
 static const float AREA_LENGTH = 50.0f;
@@ -76,21 +76,23 @@ void Player::Initialize()
 	status.critRate = 0.05f;
 	status.critDamage = 1.5f;
 	
-	trolleySprites.push_back(new Sprite("Data/Sprite/chip_win.png"));
-	trolleySprites.push_back(new Sprite("Data/Sprite/dissolve_animation.png"));
-	trolleySprites.push_back(new Sprite("Data/Sprite/LoadingIcon.png"));
-	trolleySprites.push_back(new Sprite("Data/Sprite/Title.png"));
+
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/chip_win.png"), AreaType::AttackGrow });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/dissolve_animation.png"), AreaType::DefenseGrow });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/LoadingIcon.png"), AreaType::CritRateGrow });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/Title.png"), AreaType::CritDamageGrow });
+	//trolleyOptions.push_back({ new Sprite("Data/Sprite/Jackpot.png"), AreaType::Jackpot });
 
 }
 
 // 終了化
-void Player::Finalize() 
+void Player::Finalize()
 {
-	for (Sprite* s : trolleySprites)
+	for (auto& opt : trolleyOptions)
 	{
-		delete s;
+		delete opt.sprite;
 	}
-	trolleySprites.clear();
+	trolleyOptions.clear();
 
 	delete hitSE;
 	delete hitEffect;
@@ -102,28 +104,6 @@ void Player::Update(float elapsedTime)
 {
 
 	
-	// 移動入力処理
-
-	InputMove(elapsedTime);
-
-	// ジャンプ入力処理
-	InputJump();
-
-	// 弾丸入力処理
-	InputProjectile();
-
-	// 速力処理更新
-	UpdateVelocity(elapsedTime);
-
-	// 弾丸更新処理
-	projectileManager.Update(elapsedTime);
-
-	// プレイヤーと敵との衝突処理
-	CollisionPlayerVsEnemies();
-
-	// 弾丸と敵の衝突処理
-	CollisionProjectilesVsEnemies();
-
 	
 	if (stage)
 	{
@@ -201,23 +181,20 @@ void Player::Update(float elapsedTime)
 
 		if (gamePad.GetButtonDown() & GamePad::BTN_A)
 		{
-			trolleyChoice = TrolleyChoice::Left;
-			showTrolleyUI = false;
+			ApplyAreaGrowth(leftOption->areaType);
 			trolleyChosen = true;
-
-			
+			showTrolleyUI = false;
 			position.x -= 10.0f;
 		}
 		else if (gamePad.GetButtonDown() & GamePad::BTN_B)
 		{
-			trolleyChoice = TrolleyChoice::Right;
-			showTrolleyUI = false;
+			ApplyAreaGrowth(rightOption->areaType);
 			trolleyChosen = true;
-
-		
+			showTrolleyUI = false;
 			position.x += 10.0f;
 		}
 	}
+
 
 }
 
@@ -232,34 +209,57 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 	if (showTrolleyUI)
 	{
-		if (!leftSprite || !rightSprite)
-			return;   // �� ���ꂪ���d�v
+		float screenW = 1280.0f;
+		float screenH = 720.0f;
 
-		ImGuiIO& io = ImGui::GetIO();
-		float sw = io.DisplaySize.x;
-		float sh = io.DisplaySize.y;
+		float baseW = 400.0f;
+		float baseH = 300.0f;
 
-		float w = 400.0f;
-		float h = 300.0f;
+		// 左
+		{
+			bool selected = (selectedArea == leftOption->areaType);
+			float scale = selected ? 1.1f : 0.95f;
+			float color = selected ? 1.3f : 0.6f;
 
-		leftSprite->Render(
-			rc,
-			sw * 0.25f - w * 0.5f,
-			sh * 0.5f - h * 0.5f,
-			0, w, h, 0,
-			1, 1, 1, 1
-		);
+			float w = baseW * scale;
+			float h = baseH * scale;
 
-		rightSprite->Render(
-			rc,
-			sw * 0.75f - w * 0.5f,
-			sh * 0.5f - h * 0.5f,
-			0, w, h, 0,
-			1, 1, 1, 1
-		);
-	}
+			leftOption->sprite->Render(
+				rc,
+				screenW * 0.25f - w * 0.5f,
+				screenH * 0.5f - h * 0.5f,
+				0,
+				w, h,
+				0,
+				color, color, color, 1.0f
+			);
+		}
 
+		// 右
+		{
+			bool selected = (selectedArea == rightOption->areaType);
+			float scale = selected ? 1.1f : 0.95f;
+			float color = selected ? 1.3f : 0.6f;
+
+			float w = baseW * scale;
+			float h = baseH * scale;
+
+			rightOption->sprite->Render(
+				rc,
+				screenW * 0.75f - w * 0.5f,
+				screenH * 0.5f - h * 0.5f,
+				0,
+				w, h,
+				0,
+				color, color, color, 1.0f
+			);
+		}
+
+		}
 }
+
+
+
 
 // デバッグプリミティブ描画
 

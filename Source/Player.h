@@ -25,6 +25,15 @@ enum class AreaType
 	Jackpot
 };
 
+struct TrolleyOption
+{
+	Sprite* sprite;
+	AreaType areaType;
+
+	TrolleyOption(Sprite* s, AreaType a)
+		: sprite(s), areaType(a) {
+	}
+};
 
 
 
@@ -80,6 +89,11 @@ public:
 	void SetStage(Stage* stage) { this->stage = stage; }
 
 	void BeginAreaChoice();
+	float selectedScale = 1.1f;
+	float unselectedScale = 0.95f;
+
+	float selectedColor = 1.3f;  // 明るく
+	float unselectedColor = 0.6f;  // 暗く
 
 
 
@@ -91,8 +105,10 @@ private:
 	//bool isAtStaheEnd = false;
 	// トロッコ問題用フラグ
 	std::vector<Sprite*> trolleySprites;   // 候補5枚
-	Sprite* leftSprite = nullptr;
-	Sprite* rightSprite = nullptr;
+	std::vector<TrolleyOption> trolleyOptions;
+
+	TrolleyOption* leftOption = nullptr;
+	TrolleyOption* rightOption = nullptr;
 
 	bool showTrolleyUI = false;
 	bool trolleyChosen = false;
