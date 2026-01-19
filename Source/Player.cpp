@@ -253,6 +253,11 @@ void Player::DrawDebugGUI()
 			ImGui::Text("Current Selected :");
 
 			DrawAreaText(selectedArea);
+
+
+			ImGui::Text("LastArea: ");
+			DrawAreaText(lastSelectedArea);
+			
 		}
 
 
@@ -527,50 +532,55 @@ void Player::OnLanding()
 
 
 
-
-
 void Player::ApplyAreaGrowth(AreaType area)
 {
+	float growthMultiplier = 1.0f;
+
+	// ===== 同じエリア連続チェック =====
 	if (area == lastSelectedArea && area != AreaType::None)
 	{
+		// HP減少
 		status.hp -= 10.0f;
-
 		if (status.hp < 0.0f)
 			status.hp = 0.0f;
+
+		// 成長1.5倍
+		growthMultiplier = 1.5f;
 	}
 
+	// ===== 成長処理 =====
 	switch (area)
 	{
 	case AreaType::AttackGrow:
-		status.attack += 3.0f;
+		status.attack += 3.0f * growthMultiplier;
 		break;
 
 	case AreaType::DefenseGrow:
-		status.defense += 2.0f;
+		status.defense += 2.0f * growthMultiplier;
 		break;
 
 	case AreaType::CritRateGrow:
-		status.critRate += 0.02f;
+		status.critRate += 0.02f * growthMultiplier;
 		if (status.critRate > 0.8f)
 			status.critRate = 0.8f;
 		break;
 
 	case AreaType::CritDamageGrow:
-		status.critDamage += 0.25f;
+		status.critDamage += 0.25f * growthMultiplier;
 		break;
 
 	case AreaType::BalancedGrow:
-		status.attack += 1.5f;
-		status.defense += 1.5f;
-		status.critRate += 0.01f;
-		status.critDamage += 0.15f;
+		status.attack += 1.5f * growthMultiplier;
+		status.defense += 1.5f * growthMultiplier;
+		status.critRate += 0.01f * growthMultiplier;
+		status.critDamage += 0.15f * growthMultiplier;
 		break;
 
 	case AreaType::Jackpot:
-		status.attack += 8.0f;
-		status.defense += 6.0f;
-		status.critRate += 0.08f;
-		status.critDamage += 0.5f;
+		status.attack += 8.0f * growthMultiplier;
+		status.defense += 6.0f * growthMultiplier;
+		status.critRate += 0.08f * growthMultiplier;
+		status.critDamage += 0.5f * growthMultiplier;
 		break;
 
 	default:
@@ -580,6 +590,8 @@ void Player::ApplyAreaGrowth(AreaType area)
 	// ★ 最後に必ず更新
 	lastSelectedArea = area;
 }
+
+
 
 
 void Player::BeginAreaChoice()
@@ -597,5 +609,5 @@ void Player::BeginAreaChoice()
 	selectedArea = choiceA;
 
 	// 確定Z（少し先）
-	areaDecisionZ = position.z + AREA_LENGTH * 0.8f;
+	areaDecisionZ = position.z + AREA_LENGTH * 0.9f;
 }
