@@ -39,7 +39,7 @@ static const int AREA_COUNT = 7;
 
 
 
-static AreaType GetRandomGrowArea()
+AreaType Player::GetRandomGrowArea()
 {
 	int r = rand() % 5; // Jackpot除外
 	switch (r)
@@ -55,15 +55,14 @@ static AreaType GetRandomGrowArea()
 
 
 
-
 // 初期化
 void Player::Initialize() 
 {
-	model = new Model("Data/Model/Mr.Incredible/Mr.Incredible.mdl");
+	model = new Model("Data/Model/Mr.Incredible/MineCart.mdl");
 
 	// モデルが大きいのでスケーリング
-	scale.x = scale.y = scale.z = 0.01f;
-
+	scale.x = scale.y = scale.z = 1.0f;
+	angle.y = DirectX::XMConvertToRadians(90.0f);
 	// ヒットエフェクト読み込み
 	hitEffect = new Effect("Data/Effect/Hit.efk");
 
@@ -133,13 +132,11 @@ void Player::Update(float elapsedTime)
 		
 
 		if (GetAsyncKeyState('A') & 0x8000)
-		{
-			selectedArea = choiceA;
-		}
+			selectedArea = leftOption->areaType;
+
 		if (GetAsyncKeyState('D') & 0x8000)
-		{
-			selectedArea = choiceB;
-		}
+			selectedArea = rightOption->areaType;
+
 	}
 
 	// ===== ② 通常移動・行動（止めない）=====
@@ -186,7 +183,7 @@ void Player::Update(float elapsedTime)
 			showTrolleyUI = false;
 			position.x -= 10.0f;
 		}
-		else if (gamePad.GetButtonDown() & GamePad::BTN_B)
+		else if (gamePad.GetButtonDown() & GamePad::BTN_D)
 		{
 			ApplyAreaGrowth(rightOption->areaType);
 			trolleyChosen = true;
@@ -352,7 +349,7 @@ void Player::DrawDebugGUI()
 				ImGui::Text("  A");
 
 			ImGui::SameLine();
-			DrawAreaText(choiceA);
+			DrawAreaText(leftOption->areaType);
 
 			// === Choice B ===
 			if (selectedArea == choiceB)
@@ -361,7 +358,7 @@ void Player::DrawDebugGUI()
 				ImGui::Text("  B");
 
 			ImGui::SameLine();
-			DrawAreaText(choiceB);
+			DrawAreaText(rightOption->areaType);
 
 			ImGui::Separator();
 			ImGui::Text("Current Selected :");
@@ -712,16 +709,21 @@ void Player::BeginAreaChoice()
 {
 	isChoosingAreaBonus = true;
 
-	// 成長候補2つ生成
-	choiceA = GetRandomGrowArea();
+	if (trolleyOptions.size() < 2) return;
+
+	int a = rand() % trolleyOptions.size();
+	int b;
 	do
 	{
-		choiceB = GetRandomGrowArea();
-	} while (choiceB == choiceA);
+		b = rand() % trolleyOptions.size();
+	} while (b == a);
 
-	// デフォルトはA
-	selectedArea = choiceA;
+	leftOption = &trolleyOptions[a];
+	rightOption = &trolleyOptions[b];
 
-	// 確定Z（少し先）
+	// ★ AreaTypeは画像から取得
+	selectedArea = leftOption->areaType;
+
 	areaDecisionZ = position.z + AREA_LENGTH * 0.9f;
 }
+

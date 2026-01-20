@@ -30,9 +30,6 @@ struct TrolleyOption
 	Sprite* sprite;
 	AreaType areaType;
 
-	TrolleyOption(Sprite* s, AreaType a)
-		: sprite(s), areaType(a) {
-	}
 };
 
 
@@ -65,6 +62,8 @@ public:
 	}
 
 	void SelectRandomTrolleyImages();
+
+	AreaType GetRandomGrowArea();
 
 	// ‰Šú‰»
 	void Initialize();
