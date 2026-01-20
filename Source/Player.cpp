@@ -15,26 +15,27 @@
 
 void Player::SelectRandomTrolleyImages()
 {
-	if (trolleyOptions.size() < 2) return;
+	if (trolleyOptions.size() < areaChoiceCount) return;
 
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dist(0, trolleyOptions.size() - 1);
 
-	int a = dist(gen);
-	int b;
-	do
-	{
-		b = dist(gen);
-	} while (b == a);
+	std::vector<int> indices(trolleyOptions.size());
+	for (int i = 0; i < (int)indices.size(); ++i)
+		indices[i] = i;
 
-	leftOption = &trolleyOptions[a];
-	rightOption = &trolleyOptions[b];
+	std::shuffle(indices.begin(), indices.end(), gen);
+
+	optionA = &trolleyOptions[indices[0]];
+	optionB = &trolleyOptions[indices[1]];
+
+	if (areaChoiceCount == 3)
+		optionC = &trolleyOptions[indices[2]];
+	else
+		optionC = nullptr;
 }
 
-
-
-static const float AREA_LENGTH = 50.0f;
+static const float AREA_LENGTH = 70.0f;
 static const int AREA_COUNT = 7;
 
 
@@ -131,17 +132,34 @@ void Player::Update(float elapsedTime)
 	// ===== �G���A�N������ =====
 
 	// ===== ① エリア選択中の入力処理 =====
-	if (isChoosingAreaBonus)
+	if (isChoosingAreaBonus && showStageImage)
 	{
-		
+		GamePad& gamePad = Input::Instance().GetGamePad();
 
-		if (GetAsyncKeyState('A') & 0x8000)
-			selectedArea = leftOption->areaType;
-
-		if (GetAsyncKeyState('D') & 0x8000)
-			selectedArea = rightOption->areaType;
-
+		// A（左）
+		if ((GetAsyncKeyState('A') & 0x8000) || (gamePad.GetButtonDown() & GamePad::BTN_A))
+		{
+			if (optionA)
+				selectedArea = optionA->areaType;
+		}
+		// D（右）
+		if ((GetAsyncKeyState('D') & 0x8000) || (gamePad.GetButtonDown() & GamePad::BTN_D))
+		{
+			if (optionB)
+				selectedArea = optionB->areaType;
+		}
+		// C（中央 / 3択目）
+		if (areaChoiceCount == 3)
+		{
+			if ((GetAsyncKeyState('W') & 0x8000) || (gamePad.GetButtonDown() & GamePad::BTN_Y))
+			{
+				if (optionC)
+					selectedArea = optionC->areaType;
+			}
+		}
 	}
+
+
 
 	// ===== ② 通常移動・行動（止めない）=====
 	InputMove(elapsedTime);
@@ -166,26 +184,27 @@ void Player::Update(float elapsedTime)
 	{
 		currentAreaIndex = areaIndex;
 
-		// ===== 15エリア目は必ずボス =====
-		if (areaIndex == 15)
+		stageImageShown = false;
+		showStageImage = false;
+
+		if (areaIndex == 21)
 		{
 			StartBossBattle();
 		}
 		else
 		{
-			// ===== 低確率で中ボス =====
 			int r = rand() % 100;
-			if (r < 5)   // 5%
+			if (r < 5)
 			{
 				StartMiniBossBattle();
 			}
 			else
 			{
-				// 通常エリア → 成長選択
 				BeginAreaChoice();
 			}
 		}
 	}
+
 
 
 	// ===== ④ 確定判定 =====
@@ -195,25 +214,25 @@ void Player::Update(float elapsedTime)
 		isChoosingAreaBonus = false;
 
 	}
-	if (showTrolleyUI)
+	if (showStageImage)
 	{
 		GamePad& gamePad = Input::Instance().GetGamePad();
 
-		if (gamePad.GetButtonDown() & GamePad::BTN_A)
+		if (gamePad.GetButtonDown() & GamePad::BTN_A && optionA)
 		{
-			ApplyAreaGrowth(leftOption->areaType);
-			trolleyChosen = true;
-			showTrolleyUI = false;
-			position.x -= 10.0f;
+			ApplyAreaGrowth(optionA->areaType);
 		}
-		else if (gamePad.GetButtonDown() & GamePad::BTN_D)
+		else if (gamePad.GetButtonDown() & GamePad::BTN_D && optionB)
 		{
-			ApplyAreaGrowth(rightOption->areaType);
-			trolleyChosen = true;
-			showTrolleyUI = false;
-			position.x += 10.0f;
+			ApplyAreaGrowth(optionB->areaType);
+		}
+		else if (areaChoiceCount == 3 && (gamePad.GetButtonDown() & GamePad::BTN_Y) && optionC)
+		{
+			ApplyAreaGrowth(optionC->areaType);
 		}
 	}
+
+
 
 
 }
@@ -227,55 +246,69 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 	projectileManager.Render(rc, renderer);
 
-	if (showTrolleyUI)
+	if (showStageImage && optionA && optionB)
 	{
 		float screenW = 1280.0f;
 		float screenH = 720.0f;
-
 		float baseW = 400.0f;
 		float baseH = 300.0f;
 
-		// 左
+		// A（左）
 		{
-			bool selected = (selectedArea == leftOption->areaType);
-			float scale = selected ? 1.1f : 0.95f;
-			float color = selected ? 1.3f : 0.6f;
+			bool selected = (selectedArea == optionA->areaType);
+			float scale = selected ? 0.9f : 0.6f;
+			float color = selected ? 0.9f : 0.6f;
 
-			float w = baseW * scale;
-			float h = baseH * scale;
-
-			leftOption->sprite->Render(
+			optionA->sprite->Render(
 				rc,
-				screenW * 0.25f - w * 0.5f,
-				screenH * 0.5f - h * 0.5f,
+				screenW * 0.30f - baseW * 0.5f,
+				screenH * 0.55f - baseH * 0.5f,
 				0,
-				w, h,
+				baseW * scale,
+				baseH * scale,
 				0,
 				color, color, color, 1.0f
 			);
 		}
 
-		// 右
+		// B（右）
 		{
-			bool selected = (selectedArea == rightOption->areaType);
-			float scale = selected ? 1.1f : 0.95f;
-			float color = selected ? 1.3f : 0.6f;
+			bool selected = (selectedArea == optionB->areaType);
+			float scale = selected ? 0.9f : 0.6f;
+			float color = selected ? 0.9f : 0.6f;
 
-			float w = baseW * scale;
-			float h = baseH * scale;
-
-			rightOption->sprite->Render(
+			optionB->sprite->Render(
 				rc,
-				screenW * 0.75f - w * 0.5f,
-				screenH * 0.5f - h * 0.5f,
+				screenW * 0.70f - baseW * 0.5f,
+				screenH * 0.55f - baseH * 0.5f,
 				0,
-				w, h,
+				baseW * scale,
+				baseH * scale,
 				0,
 				color, color, color, 1.0f
 			);
 		}
 
+		// C（7エリア以降）
+		if (areaChoiceCount == 3 && optionC)
+		{
+			bool selected = (selectedArea == optionC->areaType);
+			float scale = selected ? 0.9f : 0.6f;
+			float color = selected ? 0.9f : 0.6f;
+			
+			optionC->sprite->Render(
+				rc,
+				screenW * 0.50f - baseW * 0.5f,
+				screenH * 0.55f - baseH * 0.5f,
+				0,
+				baseW * scale,
+				baseH * scale,
+				0,
+				color, color, color, 1.0f
+			);
 		}
+	}
+
 }
 
 
@@ -292,114 +325,111 @@ void Player::RenderDebugPrimitive(const RenderContext& rc, ShapeRenderer* render
 	projectileManager.RenderDebugPrimitive(rc, renderer);
 }
 
-// デバッグ用GUI描画
 void Player::DrawDebugGUI()
 {
 	ImVec2 pos = ImGui::GetMainViewport()->GetWorkPos();
 	ImGui::SetNextWindowPos(ImVec2(pos.x + 10, pos.y + 10), ImGuiCond_Once);
-	ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
-
-
+	ImGui::SetNextWindowSize(ImVec2(320, 420), ImGuiCond_FirstUseEver);
 
 	auto DrawAreaText = [](AreaType type)
 		{
 			switch (type)
 			{
-			case AreaType::AttackGrow: ImGui::Text("Attack Up"); break;
-			case AreaType::DefenseGrow: ImGui::Text("Defense Up"); break;
-			case AreaType::CritRateGrow: ImGui::Text("Crit Rate Up"); break;
+			case AreaType::AttackGrow:      ImGui::Text("Attack Up"); break;
+			case AreaType::DefenseGrow:    ImGui::Text("Defense Up"); break;
+			case AreaType::CritRateGrow:   ImGui::Text("Crit Rate Up"); break;
 			case AreaType::CritDamageGrow: ImGui::Text("Crit Damage Up"); break;
-			case AreaType::BalancedGrow: ImGui::Text("Balanced Up"); break;
-		
-			default: break;
+			case AreaType::BalancedGrow:   ImGui::Text("Balanced Up"); break;
+			default:                       ImGui::Text("None"); break;
 			}
 		};
 
-
-
-
-
-
-
-
-
-	if (ImGui::Begin("Player", nullptr, ImGuiWindowFlags_None))
+	if (!ImGui::Begin("Player"))
 	{
-		// トランスフォーム
-		if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			// 位置
-			ImGui::InputFloat3("Position", &position.x);
-			// 回転
-			DirectX::XMFLOAT3 a;
-			a.x = DirectX::XMConvertToDegrees(angle.x);
-			a.y = DirectX::XMConvertToDegrees(angle.y);
-			a.z = DirectX::XMConvertToDegrees(angle.z);
-			ImGui::InputFloat3("Angle", &a.x);
-			angle.x = DirectX::XMConvertToRadians(a.x);
-			angle.y = DirectX::XMConvertToRadians(a.y);
-			angle.z = DirectX::XMConvertToRadians(a.z);
-			// スケール
-			ImGui::InputFloat3("Scale", &scale.x);
-		}
+		ImGui::End();
+		return;
 	}
-		if (ImGui::CollapsingHeader("Status", ImGuiTreeNodeFlags_DefaultOpen))
+
+	// ===== Transform =====
+	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::InputFloat3("Position", &position.x);
+
+		DirectX::XMFLOAT3 a;
+		a.x = DirectX::XMConvertToDegrees(angle.x);
+		a.y = DirectX::XMConvertToDegrees(angle.y);
+		a.z = DirectX::XMConvertToDegrees(angle.z);
+		ImGui::InputFloat3("Angle", &a.x);
+		angle.x = DirectX::XMConvertToRadians(a.x);
+		angle.y = DirectX::XMConvertToRadians(a.y);
+		angle.z = DirectX::XMConvertToRadians(a.z);
+
+		ImGui::InputFloat3("Scale", &scale.x);
+	}
+
+	// ===== Status =====
+	if (ImGui::CollapsingHeader("Status", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::Text("HP           : %.1f", status.hp);
+		ImGui::Text("Attack       : %.1f", status.attack);
+		ImGui::Text("Defense      : %.1f", status.defense);
+		ImGui::Text("Crit Rate    : %.1f%%", status.critRate * 100.0f);
+		ImGui::Text("Crit Damage  : x%.2f", status.critDamage);
+	}
+
+	ImGui::Separator();
+	ImGui::Text("Area Index : %d", currentAreaIndex);
+	ImGui::Text("Choice Count : %d", areaChoiceCount);
+
+	// ===== Area Choice Debug =====
+	if (isChoosingAreaBonus)
+	{
+		ImGui::Separator();
+		ImGui::Text("Choose Area Growth");
+
+		if (optionA)
 		{
-			ImGui::Text("HP        : %.1f", status.hp);
-			ImGui::Text("Attack        : %.1f", status.attack);
-			ImGui::Text("Defense       : %.1f", status.defense);
-			ImGui::Text("Crit Rate     : %.1f%%", status.critRate * 100.0f);
-			ImGui::Text("Crit Damage   : x%.2f", status.critDamage);
-		}
-
-
-		ImGui::Text("Area Index : %d", currentAreaIndex);
-
-
-		if (isChoosingAreaBonus)
-		{
-			ImGui::Separator();
-			ImGui::Text("Choose Area Growth");
-			ImGui::Text("LEFT / RIGHT to switch");
-			ImGui::Text("Auto confirm soon");
-
-			ImGui::Separator();
-
-			// === Choice A ===
-			if (selectedArea == choiceA)
-				ImGui::TextColored(ImVec4(0, 1, 0, 1), "▶ A");
-			else
-				ImGui::Text("  A");
-
+			ImGui::Text(selectedArea == optionA->areaType ? "▶ A" : "  A");
 			ImGui::SameLine();
-			DrawAreaText(leftOption->areaType);
-
-			// === Choice B ===
-			if (selectedArea == choiceB)
-				ImGui::TextColored(ImVec4(0, 1, 0, 1), "▶ B");
-			else
-				ImGui::Text("  B");
-
-			ImGui::SameLine();
-			DrawAreaText(rightOption->areaType);
-
-			ImGui::Separator();
-			ImGui::Text("Current Selected :");
-
-			DrawAreaText(selectedArea);
-
-
-			ImGui::Text("LastArea: ");
-			DrawAreaText(lastSelectedArea);
-			
+			DrawAreaText(optionA->areaType);
 		}
 
-		if (isInBattle)
+		if (optionB)
 		{
-			ImGui::Separator();
-			ImGui::Text(isBossBattle ? "BOSS BATTLE" : "MINI BOSS");
-			ImGui::Text("Enemy HP : %.1f", enemyHP);
+			ImGui::Text(selectedArea == optionB->areaType ? "▶ B" : "  B");
+			ImGui::SameLine();
+			DrawAreaText(optionB->areaType);
 		}
+
+		if (areaChoiceCount == 3 && optionC)
+		{
+			ImGui::Text(selectedArea == optionC->areaType ? "▶ C" : "  C");
+			ImGui::SameLine();
+			DrawAreaText(optionC->areaType);
+		}
+		if (areaChoiceCount == 3 && optionC)
+		{
+			ImGui::Text("  C ");
+			ImGui::SameLine();
+			DrawAreaText(optionC->areaType);
+		}
+
+		ImGui::Separator();
+		ImGui::Text("Current Selected:");
+		DrawAreaText(selectedArea);
+
+		ImGui::Text("Last Area:");
+		DrawAreaText(lastSelectedArea);
+	}
+
+	// ===== Battle =====
+	if (isInBattle)
+	{
+		ImGui::Separator();
+		ImGui::Text(isBossBattle ? "BOSS BATTLE" : "MINI BOSS");
+		ImGui::Text("Enemy HP : %.1f", enemyHP);
+	}
+
 	ImGui::End();
 }
 
@@ -674,7 +704,9 @@ void Player::OnLanding()
 void Player::ApplyAreaGrowth(AreaType area)
 {
 	float growthMultiplier = 1.0f;
-
+	showStageImage = false;     // ★これ必須
+	isChoosingAreaBonus = false;
+	stageImageChosen = true;
 	// ===== 同じエリア連続チェック =====
 	if (area == lastSelectedArea && area != AreaType::None)
 	{
@@ -731,25 +763,18 @@ void Player::ApplyAreaGrowth(AreaType area)
 void Player::BeginAreaChoice()
 {
 	isChoosingAreaBonus = true;
+	showStageImage = true;   // ★これが無いと一生出ない
 
-	if (trolleyOptions.size() < 2) return;
+	if (currentAreaIndex >= 7)
+		areaChoiceCount = 3;
+	else
+		areaChoiceCount = 2;
 
-	int a = rand() % trolleyOptions.size();
-	int b;
-	do
-	{
-		b = rand() % trolleyOptions.size();
-	} while (b == a);
+	SelectRandomTrolleyImages();
 
-	leftOption = &trolleyOptions[a];
-	rightOption = &trolleyOptions[b];
-
-	// ★ AreaTypeは画像から取得
-	selectedArea = leftOption->areaType;
-
+	selectedArea = optionA->areaType;
 	areaDecisionZ = position.z + AREA_LENGTH * 0.9f;
 }
-
 
 
 void Player::StartMiniBossBattle()
