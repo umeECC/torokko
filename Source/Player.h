@@ -22,7 +22,9 @@ enum class AreaType
 	CritRateGrow,
 	CritDamageGrow,
 	BalancedGrow,
-	Jackpot
+
+	MiniBoss,   // ★中ボスエリア
+	Boss        // ★ボスエリア
 };
 
 struct TrolleyOption
@@ -93,6 +95,14 @@ public:
 
 	float selectedColor = 1.3f;  // 明るく
 	float unselectedColor = 0.6f;  // 暗く
+
+	void StartMiniBossBattle();
+
+	void StartBossBattle();
+
+	void UpdateAutoBattle(float elapsedTime);
+
+	void OnEnemyDefeated();
 
 
 
@@ -168,5 +178,18 @@ private:
 
 
 	float areaDecisionZ = 0.0f;         // このZを超えたら確定
+
+
+
+	// ===== バトル管理 =====
+	bool isInBattle = false;     // 今戦闘中？
+	bool isBossBattle = false;  // ボス戦か？
+
+	float battleTimer = 0.0f;   // 自動戦闘用タイマー
+
+	// 敵ステータス
+	float enemyHP = 0.0f;
+	float enemyAttack = 0.0f;
+	float enemyDefense = 0.0f;
 
 };

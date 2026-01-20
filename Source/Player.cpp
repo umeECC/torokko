@@ -41,7 +41,7 @@ static const int AREA_COUNT = 7;
 
 AreaType Player::GetRandomGrowArea()
 {
-	int r = rand() % 5; // Jackpot除外
+	int r = rand() % 5; 
 	switch (r)
 	{
 	case 0: return AreaType::AttackGrow;
@@ -101,7 +101,11 @@ void Player::Finalize()
 // 更新処理
 void Player::Update(float elapsedTime)
 {
-
+	if (isInBattle)
+	{
+		UpdateAutoBattle(elapsedTime);
+		return;
+	}
 	
 	
 	if (stage)
@@ -157,13 +161,32 @@ void Player::Update(float elapsedTime)
 	// ===== ③ エリア侵入判定 =====
 
 	int areaIndex = static_cast<int>(position.z / AREA_LENGTH);
+
 	if (areaIndex != currentAreaIndex)
 	{
 		currentAreaIndex = areaIndex;
 
-		ApplyAreaGrowth(GetRandomGrowArea());
-		BeginAreaChoice();
+		// ===== 15エリア目は必ずボス =====
+		if (areaIndex == 15)
+		{
+			StartBossBattle();
+		}
+		else
+		{
+			// ===== 低確率で中ボス =====
+			int r = rand() % 100;
+			if (r < 5)   // 5%
+			{
+				StartMiniBossBattle();
+			}
+			else
+			{
+				// 通常エリア → 成長選択
+				BeginAreaChoice();
+			}
+		}
 	}
+
 
 	// ===== ④ 確定判定 =====
 	if (isChoosingAreaBonus && position.z >= areaDecisionZ)
@@ -287,7 +310,7 @@ void Player::DrawDebugGUI()
 			case AreaType::CritRateGrow: ImGui::Text("Crit Rate Up"); break;
 			case AreaType::CritDamageGrow: ImGui::Text("Crit Damage Up"); break;
 			case AreaType::BalancedGrow: ImGui::Text("Balanced Up"); break;
-			case AreaType::Jackpot: ImGui::Text("JACKPOT!!"); break;
+		
 			default: break;
 			}
 		};
@@ -371,7 +394,12 @@ void Player::DrawDebugGUI()
 			
 		}
 
-
+		if (isInBattle)
+		{
+			ImGui::Separator();
+			ImGui::Text(isBossBattle ? "BOSS BATTLE" : "MINI BOSS");
+			ImGui::Text("Enemy HP : %.1f", enemyHP);
+		}
 	ImGui::End();
 }
 
@@ -687,12 +715,7 @@ void Player::ApplyAreaGrowth(AreaType area)
 		status.critDamage += 0.15f * growthMultiplier;
 		break;
 
-	case AreaType::Jackpot:
-		status.attack += 8.0f * growthMultiplier;
-		status.defense += 6.0f * growthMultiplier;
-		status.critRate += 0.08f * growthMultiplier;
-		status.critDamage += 0.5f * growthMultiplier;
-		break;
+
 
 	default:
 		break;
@@ -725,5 +748,83 @@ void Player::BeginAreaChoice()
 	selectedArea = leftOption->areaType;
 
 	areaDecisionZ = position.z + AREA_LENGTH * 0.9f;
+}
+
+
+
+void Player::StartMiniBossBattle()
+{
+	isInBattle = true;
+	isBossBattle = false;
+
+	enemyHP = 80.0f + currentAreaIndex * 10.0f;
+	enemyAttack = 8.0f + currentAreaIndex * 1.5f;
+	enemyDefense = 4.0f + currentAreaIndex * 1.0f;
+}
+
+
+void Player::StartBossBattle()
+{
+	isInBattle = true;
+	isBossBattle = true;
+
+	enemyHP = 300.0f;
+	enemyAttack = 20.0f;
+	enemyDefense = 10.0f;
+}
+
+
+void Player::UpdateAutoBattle(float elapsedTime)
+{
+	battleTimer += elapsedTime;
+	if (battleTimer < 0.5f)
+		return;
+
+	battleTimer = 0.0f;
+
+	// ===== プレイヤー攻撃 =====
+	float damage = status.attack - enemyDefense;
+	if (damage < 1.0f) damage = 1.0f;
+
+	// クリティカル
+	if ((rand() / (float)RAND_MAX) < status.critRate)
+		damage *= status.critDamage;
+
+	enemyHP -= damage;
+
+	if (enemyHP <= 0.0f)
+	{
+		OnEnemyDefeated();
+		return;
+	}
+
+	// ===== 敵の攻撃 =====
+	float enemyDamage = enemyAttack - status.defense;
+	if (enemyDamage < 1.0f) enemyDamage = 1.0f;
+
+	status.hp -= enemyDamage;
+	if (status.hp < 0.0f)
+		status.hp = 0.0f;
+}
+
+
+void Player::OnEnemyDefeated()
+{
+	isInBattle = false;
+
+	if (!isBossBattle)
+	{
+		// 中ボス報酬（全部上がる）
+		status.attack += 3.0f;
+		status.defense += 3.0f;
+		status.critRate += 0.03f;
+		status.critDamage += 0.3f;
+		status.hp += 20.0f;
+	}
+	else
+	{
+		// ボス撃破（クリア）
+		// リザルト画面など
+	}
 }
 
