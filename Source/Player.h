@@ -92,7 +92,7 @@ public:
 	void BeginAreaChoice();
 	float selectedScale = 1.1f;
 	float unselectedScale = 0.95f;
-
+	
 	float selectedColor = 1.3f;  // ñæÇÈÇ≠
 	float unselectedColor = 0.6f;  // à√Ç≠
 
@@ -116,14 +116,24 @@ private:
 	std::vector<Sprite*> trolleySprites;   // åÛï‚5ñá
 	std::vector<TrolleyOption> trolleyOptions;
 
-	TrolleyOption* leftOption = nullptr;
-	TrolleyOption* rightOption = nullptr;
+	/*TrolleyOption* leftOption = nullptr;
+	TrolleyOption* rightOption = nullptr;*/
+	bool areaChoiceStarted = false;
 
 	bool showTrolleyUI = false;
 	bool trolleyChosen = false;
 	Sprite* trolleySprite = nullptr;
-
+	bool stageImageShown = false;
+	bool showStageImage = false;
+	bool stageImageChosen = false;
 	//Sprite* trolleySprite = nullptr;
+	// ëIëéàÅiç≈ëÂ3Ç¬Åj
+	TrolleyOption* optionA = nullptr;
+	TrolleyOption* optionB = nullptr;
+	TrolleyOption* optionC = nullptr;
+
+	// ç°âΩëÇ©
+	int areaChoiceCount = 2;
 
 	TrolleyChoice trolleyChoice = TrolleyChoice::None;
 	//ID3D11ShaderResourceView* endImageSRV = nullptr;
