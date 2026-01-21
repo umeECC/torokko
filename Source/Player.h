@@ -103,6 +103,8 @@ public:
 	void UpdateAutoBattle(float elapsedTime);
 
 	void OnEnemyDefeated();
+	float stageImageStartZ = 0.0f;
+	float stageImageEndZ = 0.0f;
 
 
 

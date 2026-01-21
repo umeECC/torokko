@@ -120,6 +120,18 @@ void Player::Update(float elapsedTime)
 
 
 	
+	// ★ ステージ画像の表示制御
+	if (isChoosingAreaBonus)
+	{
+		if (position.z >= stageImageStartZ && position.z <= stageImageEndZ)
+		{
+			showStageImage = true;
+		}
+		else
+		{
+			showStageImage = false;
+		}
+	}
 
 	// オブジェクト行列を更新
 
@@ -129,7 +141,7 @@ void Player::Update(float elapsedTime)
 	model->UpdateTransform();
 
 
-	// ===== �G���A�N������ =====
+
 
 	// ===== ① エリア選択中の入力処理 =====
 	if (isChoosingAreaBonus && showStageImage)
@@ -185,7 +197,7 @@ void Player::Update(float elapsedTime)
 		currentAreaIndex = areaIndex;
 
 		stageImageShown = false;
-		showStageImage = false;
+		
 
 		if (areaIndex == 21)
 		{
@@ -763,7 +775,6 @@ void Player::ApplyAreaGrowth(AreaType area)
 void Player::BeginAreaChoice()
 {
 	isChoosingAreaBonus = true;
-	showStageImage = true;   // ★これが無いと一生出ない
 
 	if (currentAreaIndex >= 7)
 		areaChoiceCount = 3;
@@ -771,10 +782,18 @@ void Player::BeginAreaChoice()
 		areaChoiceCount = 2;
 
 	SelectRandomTrolleyImages();
-
 	selectedArea = optionA->areaType;
-	areaDecisionZ = position.z + AREA_LENGTH * 0.9f;
+
+	// ===== 表示区間 =====
+	stageImageStartZ = position.z + AREA_LENGTH * 0.6f;
+	stageImageEndZ = position.z + AREA_LENGTH * 0.9f;
+
+	// ===== 確定位置（★ここ）=====
+	areaDecisionZ = position.z + AREA_LENGTH * 0.75f;
+
+	showStageImage = false; // 最初は非表示
 }
+
 
 
 void Player::StartMiniBossBattle()
