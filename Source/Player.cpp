@@ -784,7 +784,6 @@ void Player::BeginAreaChoice()
 	stageImageEndZ = position.z + AREA_LENGTH * 0.9f;
 
 	// ===== 確定位置（★ここ）=====
-
 	areaDecisionZ = position.z + AREA_LENGTH * 0.75f;
 
 	showStageImage = false; // 最初は非表示
