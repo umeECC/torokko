@@ -35,7 +35,7 @@ void Player::SelectRandomTrolleyImages()
 		optionC = nullptr;
 }
 
-static const float AREA_LENGTH = 70.0f;
+static const float AREA_LENGTH = 50.0f;
 static const int AREA_COUNT = 7;
 
 
@@ -120,6 +120,18 @@ void Player::Update(float elapsedTime)
 
 
 	
+	// ★ ステージ画像の表示制御
+	if (isChoosingAreaBonus)
+	{
+		if (position.z >= stageImageStartZ && position.z <= stageImageEndZ)
+		{
+			showStageImage = true;
+		}
+		else
+		{
+			showStageImage = false;
+		}
+	}
 
 	// オブジェクト行列を更新
 
@@ -129,7 +141,7 @@ void Player::Update(float elapsedTime)
 	model->UpdateTransform();
 
 
-	// ===== �G���A�N������ =====
+
 
 	// ===== ① エリア選択中の入力処理 =====
 	if (isChoosingAreaBonus && showStageImage)
@@ -185,7 +197,7 @@ void Player::Update(float elapsedTime)
 		currentAreaIndex = areaIndex;
 
 		stageImageShown = false;
-		showStageImage = false;
+		
 
 		if (areaIndex == 21)
 		{
@@ -193,8 +205,12 @@ void Player::Update(float elapsedTime)
 		}
 		else
 		{
-			int r = rand() % 100;
-			if (r < 5)
+			
+			if (areaIndex == 7)
+			{
+				StartMiniBossBattle();
+			}
+			else if (areaIndex == 14)
 			{
 				StartMiniBossBattle();
 			}
@@ -231,10 +247,6 @@ void Player::Update(float elapsedTime)
 			ApplyAreaGrowth(optionC->areaType);
 		}
 	}
-
-
-
-
 }
 
 // 描画処理
@@ -407,12 +419,7 @@ void Player::DrawDebugGUI()
 			ImGui::SameLine();
 			DrawAreaText(optionC->areaType);
 		}
-		if (areaChoiceCount == 3 && optionC)
-		{
-			ImGui::Text("  C ");
-			ImGui::SameLine();
-			DrawAreaText(optionC->areaType);
-		}
+		
 
 		ImGui::Separator();
 		ImGui::Text("Current Selected:");
@@ -715,8 +722,8 @@ void Player::ApplyAreaGrowth(AreaType area)
 		if (status.hp < 0.0f)
 			status.hp = 0.0f;
 
-		// 成長1.5倍
-		growthMultiplier = 1.5f;
+		// 成長2倍
+		growthMultiplier = 2.0f;
 	}
 
 	// ===== 成長処理 =====
@@ -732,8 +739,8 @@ void Player::ApplyAreaGrowth(AreaType area)
 
 	case AreaType::CritRateGrow:
 		status.critRate += 0.02f * growthMultiplier;
-		if (status.critRate > 0.8f)
-			status.critRate = 0.8f;
+		if (status.critRate > 0.9f)
+			status.critRate = 0.9f;
 		break;
 
 	case AreaType::CritDamageGrow:
@@ -763,7 +770,6 @@ void Player::ApplyAreaGrowth(AreaType area)
 void Player::BeginAreaChoice()
 {
 	isChoosingAreaBonus = true;
-	showStageImage = true;   // ★これが無いと一生出ない
 
 	if (currentAreaIndex >= 7)
 		areaChoiceCount = 3;
@@ -771,10 +777,19 @@ void Player::BeginAreaChoice()
 		areaChoiceCount = 2;
 
 	SelectRandomTrolleyImages();
-
 	selectedArea = optionA->areaType;
-	areaDecisionZ = position.z + AREA_LENGTH * 0.9f;
+
+	// ===== 表示区間 =====
+	stageImageStartZ = position.z + AREA_LENGTH * 0.6f;
+	stageImageEndZ = position.z + AREA_LENGTH * 0.9f;
+
+	// ===== 確定位置（★ここ）=====
+
+	areaDecisionZ = position.z + AREA_LENGTH * 0.75f;
+
+	showStageImage = false; // 最初は非表示
 }
+
 
 
 void Player::StartMiniBossBattle()
@@ -783,8 +798,8 @@ void Player::StartMiniBossBattle()
 	isBossBattle = false;
 
 	enemyHP = 80.0f + currentAreaIndex * 10.0f;
-	enemyAttack = 8.0f + currentAreaIndex * 1.5f;
-	enemyDefense = 4.0f + currentAreaIndex * 1.0f;
+	enemyAttack = 10.0f + currentAreaIndex * 1.0f;
+	enemyDefense = 6.0f + currentAreaIndex * 1.0f;
 }
 
 
