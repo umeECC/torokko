@@ -20,22 +20,45 @@ void Player::SelectRandomTrolleyImages()
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
 
-	std::vector<int> indices(trolleyOptions.size());
-	for (int i = 0; i < (int)indices.size(); ++i)
-		indices[i] = i;
+	TrolleyOption* miniBossOption = nullptr;
+	std::vector<TrolleyOption*> normalOptions;
 
-	std::shuffle(indices.begin(), indices.end(), gen);
+	for (auto& opt : trolleyOptions)
+	{
+		if (opt.areaType == AreaType::MiniBoss)
+			miniBossOption = &opt;
+		else if (opt.areaType != AreaType::Boss)
+			normalOptions.push_back(&opt);
+	}
 
-	optionA = &trolleyOptions[indices[0]];
-	optionB = &trolleyOptions[indices[1]];
+	std::shuffle(normalOptions.begin(), normalOptions.end(), gen);
 
-	if (areaChoiceCount == 3)
-		optionC = &trolleyOptions[indices[2]];
-	else
+	// ===== 2択 =====
+	if (areaChoiceCount == 2)
+	{
+		optionA = normalOptions[0];
+		optionB = normalOptions[1];
 		optionC = nullptr;
+		return;
+	}
+
+	// ===== 3択 =====
+	optionA = normalOptions[0];
+	optionB = normalOptions[1];
+
+	// ★ 7・14だけ中ボス確定
+	if (isMiniBossChoiceArea && miniBossOption)
+	{
+		optionC = miniBossOption;
+	}
+	else
+	{
+		optionC = normalOptions[2];
+	}
 }
 
-static const float AREA_LENGTH = 50.0f;
+
+static const float AREA_LENGTH = 40.0f;
 static const int AREA_COUNT = 7;
 
 
@@ -50,6 +73,8 @@ AreaType Player::GetRandomGrowArea()
 	case 2: return AreaType::CritRateGrow;
 	case 3: return AreaType::CritDamageGrow;
 	case 4: return AreaType::BalancedGrow;
+	case 5: return AreaType::MiniBoss;
+	case 6: return AreaType::Boss;
 	default: return AreaType::AttackGrow;
 	}
 }
@@ -81,6 +106,8 @@ void Player::Initialize()
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/砂漠.png"), AreaType::DefenseGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/氷山.png"), AreaType::CritRateGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/洞窟.png"), AreaType::CritDamageGrow });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/中ボス部屋.png"), AreaType::MiniBoss });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/ボス部屋.png"), AreaType::Boss });
 	//trolleyOptions.push_back({ new Sprite("Data/Sprite/Jackpot.png"), AreaType::Jackpot });
 
 }
@@ -205,20 +232,9 @@ void Player::Update(float elapsedTime)
 		}
 		else
 		{
-			
-			if (areaIndex == 7)
-			{
-				StartMiniBossBattle();
-			}
-			else if (areaIndex == 14)
-			{
-				StartMiniBossBattle();
-			}
-			else
-			{
-				BeginAreaChoice();
-			}
+			BeginAreaChoice();
 		}
+
 	}
 
 
@@ -352,6 +368,8 @@ void Player::DrawDebugGUI()
 			case AreaType::CritRateGrow:   ImGui::Text("Crit Rate Up"); break;
 			case AreaType::CritDamageGrow: ImGui::Text("Crit Damage Up"); break;
 			case AreaType::BalancedGrow:   ImGui::Text("Balanced Up"); break;
+			case AreaType::MiniBoss:       ImGui::Text("Mini Boss Area"); break;
+			case AreaType::Boss:           ImGui::Text("Boss Area"); break;
 			default:                       ImGui::Text("None"); break;
 			}
 		};
@@ -771,17 +789,23 @@ void Player::BeginAreaChoice()
 {
 	isChoosingAreaBonus = true;
 
+	// 7以降は3択、それまでは2択
 	if (currentAreaIndex >= 7)
 		areaChoiceCount = 3;
 	else
 		areaChoiceCount = 2;
 
+	// ★ 中ボス確定フラグ
+	isMiniBossChoiceArea =
+		(currentAreaIndex == 7 || currentAreaIndex == 14);
+
+
 	SelectRandomTrolleyImages();
 	selectedArea = optionA->areaType;
 
 	// ===== 表示区間 =====
-	stageImageStartZ = position.z + AREA_LENGTH * 0.6f;
-	stageImageEndZ = position.z + AREA_LENGTH * 0.9f;
+	stageImageStartZ = position.z + AREA_LENGTH * 0.5f;
+	stageImageEndZ = position.z + AREA_LENGTH * 1.0f;
 
 	// ===== 確定位置（★ここ）=====
 	areaDecisionZ = position.z + AREA_LENGTH * 0.75f;
@@ -810,6 +834,8 @@ void Player::StartBossBattle()
 	enemyHP = 300.0f;
 	enemyAttack = 20.0f;
 	enemyDefense = 10.0f;
+
+	EnemyManager::Instance().SpawnBossVisual();
 }
 
 
