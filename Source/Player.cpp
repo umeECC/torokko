@@ -106,8 +106,6 @@ void Player::Finalize()
 	hitEffect = nullptr;
 
 	delete model;
-
-
 	model = nullptr;
 
 	// ★ 状態を全部リセット
@@ -127,6 +125,7 @@ void Player::Finalize()
 
 	jumpCount = 0;
 	battleTimer = 0.0f;
+
 
 	delete hpFrameSprite;
 	delete hpBarSprite;
