@@ -35,3 +35,4 @@ void Stage::Render(const RenderContext& rc, ModelRenderer* renderer)
 	// ƒŒƒ“ƒ_ƒ‰‚Éƒ‚ƒfƒ‹‚ð•`‰æ‚µ‚Ä‚à‚ç‚¤
 	renderer->Render(rc, transform, model, ShaderId::Lambert);
 }
+

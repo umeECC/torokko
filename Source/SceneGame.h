@@ -25,8 +25,12 @@ public:
 
 	// GUIï`âÊ
 	void DrawGUI() override;
+	void SpawnBoss();
 
 private:
 	Stage* stage = nullptr;
 	CameraController* cameraController = nullptr;
+private:
+	bool bossSpawned = false;    // ê∂ê¨çœÇ›Ç©
+	bool bossDefeated = false;   // åÇîjçœÇ›Ç©
 };

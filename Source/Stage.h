@@ -21,6 +21,7 @@ public:
 	float GetMinZ() const { return minZ; }
 	float GetMaxZ() const { return maxZ; }
 	float GetFloorY() const { return floorY; }
+	int GetCurrentAreaIndex(const DirectX::XMFLOAT3& playerPos) const;
 
 private:
 	Model* model = nullptr;
