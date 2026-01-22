@@ -358,8 +358,8 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 			optionA->sprite->Render(
 				rc,
-				screenW * 0.30f - baseW * 0.5f,
-				screenH * 0.55f - baseH * 0.5f,
+				screenW * 0.25f - baseW * 0.5f,
+				screenH * 0.65f - baseH * 0.5f,
 				0,
 				baseW * scale,
 				baseH * scale,
@@ -376,8 +376,8 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 			optionB->sprite->Render(
 				rc,
-				screenW * 0.70f - baseW * 0.5f,
-				screenH * 0.55f - baseH * 0.5f,
+				screenW * 0.85f - baseW * 0.5f,
+				screenH * 0.65f - baseH * 0.5f,
 				0,
 				baseW * scale,
 				baseH * scale,
@@ -395,8 +395,8 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 			
 			optionC->sprite->Render(
 				rc,
-				screenW * 0.50f - baseW * 0.5f,
-				screenH * 0.55f - baseH * 0.5f,
+				screenW * 0.575f - baseW * 0.5f,
+				screenH * 0.3f - baseH * 0.5f,
 				0,
 				baseW * scale,
 				baseH * scale,
@@ -868,7 +868,7 @@ void Player::BeginAreaChoice()
 	stageImageEndZ = position.z + AREA_LENGTH * 0.9f;
 
 	// ===== 確定位置（★ここ）=====
-	areaDecisionZ = position.z + AREA_LENGTH * 0.75f;
+	areaDecisionZ = position.z + AREA_LENGTH * 0.9f;
 
 	showStageImage = false; // 最初は非表示
 }
@@ -880,9 +880,9 @@ void Player::StartMiniBossBattle()
 	isInBattle = true;
 	isBossBattle = false;
 
-	enemyHP = 80.0f + currentAreaIndex * 10.0f;
-	enemyAttack = 10.0f + currentAreaIndex * 1.0f;
-	enemyDefense = 6.0f + currentAreaIndex * 1.0f;
+	enemyHP = 50.0f + currentAreaIndex * 10.0f;
+	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
+	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
 }
 
 
@@ -891,9 +891,9 @@ void Player::StartBossBattle()
 	isInBattle = true;
 	isBossBattle = true;
 
-	enemyHP = 300.0f;
-	enemyAttack = 20.0f;
-	enemyDefense = 10.0f;
+	enemyHP = 500.0f;
+	enemyAttack = 25.0f;
+	enemyDefense = 15.0f;
 }
 
 
@@ -941,10 +941,10 @@ void Player::OnEnemyDefeated()
 	if (!isBossBattle)
 	{
 		// 中ボス報酬（全部上がる）
-		status.attack += 3.0f;
-		status.defense += 3.0f;
-		status.critRate += 0.03f;
-		status.critDamage += 0.3f;
+		status.attack += 5.0f;
+		status.defense += 5.0f;
+		status.critRate += 0.05f;
+		status.critDamage += 0.5f;
 		status.hp += 20.0f;
 	}
 	else
