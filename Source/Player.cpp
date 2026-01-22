@@ -90,7 +90,19 @@ void Player::Initialize()
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/氷山.png"), AreaType::CritRateGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/洞窟.png"), AreaType::CritDamageGrow });
 	//trolleyOptions.push_back({ new Sprite("Data/Sprite/Jackpot.png"), AreaType::Jackpot });
+	for (int i = 0; i < 10; ++i)
+	{
+		numberSprites[i] = new Sprite(
+			("Data/Sprite/" + std::to_string(i) + ".png").c_str()
+		);
+	}
 
+	percentSprite = new Sprite("Data/Sprite/%.png");
+	xSprite = new Sprite("Data/Sprite/×.png");
+	dotSprite = new Sprite("Data/Sprite/ドット.png");
+	upArrowSprite = new Sprite("Data/Sprite/上矢印.png");
+	
+	prevStatus = status;
 }
 
 // 終了化
@@ -137,11 +149,23 @@ void Player::Finalize()
 	delete defenseIconSprite;
 	delete critIconSprite;
 	delete critDamageIconSprite;
+	for (int i = 0; i < 10; ++i)
+	{
+		delete numberSprites[i];
+		numberSprites[i] = nullptr;
+	}
+
+	delete percentSprite;
+	delete xSprite;
+	delete dotSprite;
+	delete upArrowSprite;
 }
 
 // 更新処理
 void Player::Update(float elapsedTime)
 {
+	prevStatus = status;
+
 	if (isInBattle)
 	{
 		UpdateAutoBattle(elapsedTime);
@@ -387,7 +411,7 @@ void Player::DrawHPGauge(const RenderContext& rc)
 	// ===== HPゲージ =====
 	float hpRate = std::clamp(status.hp / 100.0f, 0.0f, 1.0f);
 
-	
+
 
 	hpFrameSprite->Render(
 		rc,
@@ -429,6 +453,26 @@ void Player::DrawHPGauge(const RenderContext& rc)
 		0,
 		1, 1, 1, 1
 	);
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		std::to_string((int)status.attack),
+		24.0f
+	);
+
+	if (IsIncreased(status.attack, prevStatus.attack))
+	{
+		upArrowSprite->Render(
+			rc,
+			iconX + iconSize + 80.0f,
+			iconY,
+			0,
+			24, 24,
+			0,
+			1, 1, 1, 1
+		);
+	}
 
 	// 防御
 	iconY += iconSize + iconSpace;
@@ -441,6 +485,13 @@ void Player::DrawHPGauge(const RenderContext& rc)
 		iconSize,
 		0,
 		1, 1, 1, 1
+	);
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		std::to_string((int)status.defense),
+		24.0f
 	);
 
 	// 会心
@@ -455,7 +506,18 @@ void Player::DrawHPGauge(const RenderContext& rc)
 		0,
 		1, 1, 1, 1
 	);
+	std::string critRateText =
+		std::to_string((int)(status.critRate * 100)) + "%";
 
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		critRateText,
+		24.0f
+	);
+
+	// 会心ダメージ
 	iconY += iconSize + iconSpace;
 	critDamageIconSprite->Render(
 		rc,
@@ -467,9 +529,96 @@ void Player::DrawHPGauge(const RenderContext& rc)
 		0,
 		1, 1, 1, 1
 	);
+
+	int critDmgInt = (int)(status.critDamage * 10);
+	std::string critDamageText =
+		std::to_string(critDmgInt / 10) + "." +
+		std::to_string(critDmgInt % 10) + "x";
+
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		critDamageText,
+		24.0f
+	);
+
+
+	// ↑
+	if (IsIncreased(status.attack, prevStatus.attack))
+	{
+		upArrowSprite->Render(
+			rc,
+			iconX + iconSize + 80.0f,
+			iconY,
+			0,
+			24.0f,
+			24.0f,
+			0,
+			1, 1, 1, 1
+		);
+	}
+}
+	
+void Player::DrawNumber(
+	const RenderContext& rc,
+	float x,
+	float y,
+	const std::string& text,
+	float size
+)
+{
+	float drawX = x;
+
+	for (char c : text)
+	{
+		Sprite* sprite = nullptr;
+		float advance = size * 0.8f;   // ← 基本間隔（全体を少し広め）
+
+		if (c >= '0' && c <= '9')
+		{
+			sprite = numberSprites[c - '0'];
+			advance = size * 0.8f;
+		}
+		else if (c == '%')
+		{
+			sprite = percentSprite;
+			advance = size * 0.9f;     // ← % は少し広め
+		}
+		else if (c == 'x')
+		{
+			sprite = xSprite;
+			advance = size * 0.8f;
+		}
+		else if (c == '.')
+		{
+			sprite = dotSprite;
+			advance = size * 0.7f;    // ← ドットは狭く
+		}
+
+		if (!sprite) continue;
+
+		sprite->Render(
+			rc,
+			drawX,
+			y,
+			0,
+			size,
+			size,
+			0,
+			1, 1, 1, 1
+		);
+
+		drawX += advance;
+	}
 }
 
 
+
+bool Player::IsIncreased(float current, float prev) const
+{
+	return current > prev;
+}
 
 
 // デバッグプリミティブ描画
@@ -761,18 +910,18 @@ void Player::CollisionProjectilesVsEnemies()
 // ジャンプ入力処理
 void Player::InputJump()
 {
-	// ボタン入力でジャンプ（ジャンプ回数制限つき）
-	GamePad& gamePad = Input::Instance().GetGamePad();
-	if (gamePad.GetButtonDown() & GamePad::BTN_A)
-	{
-		// ジャンプ回数制限
-		if (jumpCount < jumpLimit)
-		{
-			// ジャンプ
-			jumpCount++;
-			Jump(jumpSpeed);
-		}
-	}
+	//// ボタン入力でジャンプ（ジャンプ回数制限つき）
+	//GamePad& gamePad = Input::Instance().GetGamePad();
+	//if (gamePad.GetButtonDown() & GamePad::BTN_A)
+	//{
+	//	// ジャンプ回数制限
+	//	if (jumpCount < jumpLimit)
+	//	{
+	//		// ジャンプ
+	//		jumpCount++;
+	//		Jump(jumpSpeed);
+	//	}
+	//}
 }
 
 // 弾丸入力処理
