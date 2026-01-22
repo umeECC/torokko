@@ -15,7 +15,13 @@ public:
 
 	// XVˆ—
 	virtual void Update(float elapsedTime) = 0;
-
+	Model* GetModel() const { return model; }
+	void SetModel(Model* model);
+	void SetBoss(bool boss);
+	bool IsBoss() const { return isBoss; }
 	// •`‰æˆ—
 	virtual void Render(const RenderContext& rc, ModelRenderer* renderer) = 0;
+private:
+	Model* model = nullptr;
+	bool isBoss = false;
 };

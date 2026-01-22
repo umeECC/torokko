@@ -15,6 +15,7 @@
 #include <SceneManager.h>
 #include "SceneResult.h"
 #include "SceneOver.h"
+#include <BossEnemy.h>
 
 void Player::SelectRandomTrolleyImages()
 {
@@ -23,22 +24,45 @@ void Player::SelectRandomTrolleyImages()
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
 
-	std::vector<int> indices(trolleyOptions.size());
-	for (int i = 0; i < (int)indices.size(); ++i)
-		indices[i] = i;
+	TrolleyOption* miniBossOption = nullptr;
+	std::vector<TrolleyOption*> normalOptions;
 
-	std::shuffle(indices.begin(), indices.end(), gen);
+	for (auto& opt : trolleyOptions)
+	{
+		if (opt.areaType == AreaType::MiniBoss)
+			miniBossOption = &opt;
+		else if (opt.areaType != AreaType::Boss)
+			normalOptions.push_back(&opt);
+	}
 
-	optionA = &trolleyOptions[indices[0]];
-	optionB = &trolleyOptions[indices[1]];
+	std::shuffle(normalOptions.begin(), normalOptions.end(), gen);
 
-	if (areaChoiceCount == 3)
-		optionC = &trolleyOptions[indices[2]];
-	else
+	// ===== 2択 =====
+	if (areaChoiceCount == 2)
+	{
+		optionA = normalOptions[0];
+		optionB = normalOptions[1];
 		optionC = nullptr;
+		return;
+	}
+
+	// ===== 3択 =====
+	optionA = normalOptions[0];
+	optionB = normalOptions[1];
+
+	// ★ 7・14だけ中ボス確定
+	if (isMiniBossChoiceArea && miniBossOption)
+	{
+		optionC = miniBossOption;
+	}
+	else
+	{
+		optionC = normalOptions[2];
+	}
 }
 
-static const float AREA_LENGTH = 50.0f;
+
+static const float AREA_LENGTH = 40.0f;
 static const int AREA_COUNT = 7;
 
 
@@ -52,6 +76,8 @@ AreaType Player::GetRandomGrowArea()
 	case 1: return AreaType::DefenseGrow;
 	case 2: return AreaType::CritRateGrow;
 	case 3: return AreaType::CritDamageGrow;
+	case 4: return AreaType::MiniBoss;
+	case 5: return AreaType::Boss;
 	default: return AreaType::AttackGrow;
 	}
 }
@@ -80,11 +106,17 @@ void Player::Initialize()
 	
 	hpFrameSprite = new Sprite("Data/Sprite/体力ゲージ.png");
 	hpBarSprite = new Sprite("Data/Sprite/体力.png");
+	attackIconSprite = new Sprite("Data/Sprite/拳.png");
+	defenseIconSprite = new Sprite("Data/Sprite/盾.png");
+	critIconSprite = new Sprite("Data/Sprite/会心ダメ.png");
+	critDamageIconSprite = new Sprite("Data/Sprite/会心.png");
 
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/火山.png"), AreaType::AttackGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/砂漠.png"), AreaType::DefenseGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/氷山.png"), AreaType::CritRateGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/洞窟.png"), AreaType::CritDamageGrow });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/中ボス部屋.png"), AreaType::MiniBoss });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/ボス部屋.png"), AreaType::Boss });
 	//trolleyOptions.push_back({ new Sprite("Data/Sprite/Jackpot.png"), AreaType::Jackpot });
 
 }
@@ -129,7 +161,10 @@ void Player::Finalize()
 
 	delete hpFrameSprite;
 	delete hpBarSprite;
-
+	delete attackIconSprite;
+	delete defenseIconSprite;
+	delete critIconSprite;
+	delete critDamageIconSprite;
 }
 
 // 更新処理
@@ -152,7 +187,8 @@ void Player::Update(float elapsedTime)
 	}
 
 
-	
+
+
 	// ★ ステージ画像の表示制御
 	if (isChoosingAreaBonus)
 	{
@@ -238,20 +274,9 @@ void Player::Update(float elapsedTime)
 		}
 		else
 		{
-			
-			if (areaIndex == 7)
-			{
-				StartMiniBossBattle();
-			}
-			else if (areaIndex == 14)
-			{
-				StartMiniBossBattle();
-			}
-			else
-			{
-				BeginAreaChoice();
-			}
+			BeginAreaChoice();
 		}
+
 	}
 
 
@@ -285,47 +310,8 @@ void Player::Update(float elapsedTime)
 }
 
 
-void Player::DrawHPGauge(const RenderContext& rc)
-{
-	if (!hpFrameSprite || !hpBarSprite)
-		return;
 
-	const float screenX = 20.0f;
-	const float screenY = 20.0f;
 
-	const float gaugeW = 300.0f;
-	const float gaugeH = 40.0f;
-
-	// HP割合
-	float hpRate = status.hp / 100.0f;
-	hpRate = std::clamp(hpRate, 0.0f, 1.0f);
-
-	hpFrameSprite->Render(
-		rc,
-		screenX,
-		screenY,
-		0,
-		gaugeW,
-		gaugeH,
-		0,
-		1, 1, 1, 1
-	);
-
-	// ---- 中身（先に描く） ----
-	hpBarSprite->Render(
-		rc,
-		screenX,
-		screenY,
-		0,
-		gaugeW * hpRate,
-		gaugeH,
-		0,
-		1, 1, 1, 1
-	);
-
-	// ---- 枠（後に描く） ----
-	
-}
 
 
 // 描画処理
@@ -392,7 +378,7 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 			bool selected = (selectedArea == optionC->areaType);
 			float scale = selected ? 0.9f : 0.6f;
 			float color = selected ? 0.9f : 0.6f;
-			
+
 			optionC->sprite->Render(
 				rc,
 				screenW * 0.575f - baseW * 0.5f,
@@ -405,9 +391,100 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 			);
 		}
 	}
+}
 
+	
+void Player::DrawHPGauge(const RenderContext& rc)
+{
+	const float baseX = 20.0f;
+	const float baseY = 20.0f;
 
+	const float gaugeW = 300.0f;
+	const float gaugeH = 40.0f;
 
+	// ===== HPゲージ =====
+	float hpRate = std::clamp(status.hp / 100.0f, 0.0f, 1.0f);
+
+	
+
+	hpFrameSprite->Render(
+		rc,
+		baseX,
+		baseY,
+		0,
+		gaugeW,
+		gaugeH,
+		0,
+		1, 1, 1, 1
+	);
+
+	hpBarSprite->Render(
+		rc,
+		baseX,
+		baseY,
+		0,
+		gaugeW * hpRate,
+		gaugeH,
+		0,
+		1, 1, 1, 1
+	);
+
+	// ===== ステータス縦並び =====
+	const float iconSize = 50.0f;
+	const float iconSpace = 10.0f;
+
+	float iconX = baseX;
+	float iconY = baseY + gaugeH + 16.0f;
+
+	// 攻撃
+	attackIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+
+	// 防御
+	iconY += iconSize + iconSpace;
+	defenseIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+
+	// 会心
+	iconY += iconSize + iconSpace;
+	critIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+
+	iconY += iconSize + iconSpace;
+	critDamageIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
 }
 
 
@@ -438,7 +515,12 @@ void Player::DrawDebugGUI()
 			case AreaType::DefenseGrow:    ImGui::Text("Defense Up"); break;
 			case AreaType::CritRateGrow:   ImGui::Text("Crit Rate Up"); break;
 			case AreaType::CritDamageGrow: ImGui::Text("Crit Damage Up"); break;
+			//case AreaType::BalancedGrow:   ImGui::Text("Balanced Up"); break;
+			case AreaType::MiniBoss:       ImGui::Text("Mini Boss Area"); break;
+			case AreaType::Boss:           ImGui::Text("Boss Area"); break;
+
 		
+
 			default:                       ImGui::Text("None"); break;
 			}
 		};
@@ -855,17 +937,23 @@ void Player::BeginAreaChoice()
 {
 	isChoosingAreaBonus = true;
 
+	// 7以降は3択、それまでは2択
 	if (currentAreaIndex >= 7)
 		areaChoiceCount = 3;
 	else
 		areaChoiceCount = 2;
 
+	// ★ 中ボス確定フラグ
+	isMiniBossChoiceArea =
+		(currentAreaIndex == 7 || currentAreaIndex == 14);
+
+
 	SelectRandomTrolleyImages();
 	selectedArea = optionA->areaType;
 
 	// ===== 表示区間 =====
-	stageImageStartZ = position.z + AREA_LENGTH * 0.6f;
-	stageImageEndZ = position.z + AREA_LENGTH * 0.9f;
+	stageImageStartZ = position.z + AREA_LENGTH * 0.5f;
+	stageImageEndZ = position.z + AREA_LENGTH * 1.0f;
 
 	// ===== 確定位置（★ここ）=====
 	areaDecisionZ = position.z + AREA_LENGTH * 0.9f;
@@ -894,6 +982,8 @@ void Player::StartBossBattle()
 	enemyHP = 500.0f;
 	enemyAttack = 25.0f;
 	enemyDefense = 15.0f;
+
+	EnemyManager::Instance().SpawnBossVisual();
 }
 
 

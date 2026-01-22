@@ -1,6 +1,6 @@
 #include "EnemyManager.h"
 #include "Collision.h"
-
+#include "BossEnemy.h"
 // 更新処理
 void EnemyManager::Update(float elapsedTime)
 {
@@ -29,6 +29,34 @@ void EnemyManager::Update(float elapsedTime)
 
 	// 敵同士の衝突処理
 	CollisionEnemyVsEnemies();
+}
+
+
+
+#include <Player.h>
+
+void EnemyManager::SpawnBossVisual()
+{
+	Clear(); // 既存の敵を消す（中ボスなど）
+
+	BossEnemy* boss = new BossEnemy();
+
+	// プレイヤー前方に出す
+	DirectX::XMFLOAT3 p = Player::Instance().GetPosition();
+	boss->SetPosition({ p.x, p.y, p.z + 30.0f });
+
+	// ★ ここが超重要
+	Register(boss);
+}
+
+void EnemyManager::ClearEnemies()
+{
+	for (Enemy* e : enemies)
+	{
+		delete e->GetModel(); // モデル解放
+		delete e;
+	}
+	enemies.clear();
 }
 
 // 描画処理

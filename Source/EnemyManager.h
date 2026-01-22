@@ -18,6 +18,8 @@ public:
 		static EnemyManager instance;
 		return instance;
 	}
+	void SpawnBossVisual();
+	void ClearEnemies();
 
 	// XVˆ—
 	void Update(float elapsedTime);
