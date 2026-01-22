@@ -176,6 +176,7 @@ private:
 	AudioSource*		hitSE = nullptr;
 
 	PlayerStatus status;
+	PlayerStatus prevStatus;
 
 	int currentAreaIndex = -1;
 
@@ -211,4 +212,17 @@ private:
 	Sprite* defenseIconSprite = nullptr; // èÇ.png
 	Sprite* critIconSprite = nullptr; // âÔêS.png
 	Sprite* critDamageIconSprite = nullptr; // âÔêSÉ_ÉÅ.png
+	Sprite* numberSprites[10] = {};
+	Sprite* percentSprite = nullptr;
+	Sprite* xSprite = nullptr;
+	Sprite* dotSprite = nullptr;
+	Sprite* upArrowSprite = nullptr;
+	bool IsIncreased(float current, float prev) const;
+	void DrawNumber(
+		const RenderContext& rc,
+		float x,
+		float y,
+		const std::string& text,
+		float size
+	);
 };

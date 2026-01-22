@@ -118,7 +118,19 @@ void Player::Initialize()
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/中ボス部屋.png"), AreaType::MiniBoss });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/ボス部屋.png"), AreaType::Boss });
 	//trolleyOptions.push_back({ new Sprite("Data/Sprite/Jackpot.png"), AreaType::Jackpot });
+	for (int i = 0; i < 10; ++i)
+	{
+		numberSprites[i] = new Sprite(
+			("Data/Sprite/" + std::to_string(i) + ".png").c_str()
+		);
+	}
 
+	percentSprite = new Sprite("Data/Sprite/%.png");
+	xSprite = new Sprite("Data/Sprite/×.png");
+	dotSprite = new Sprite("Data/Sprite/ドット.png");
+	upArrowSprite = new Sprite("Data/Sprite/上矢印.png");
+	
+	prevStatus = status;
 }
 
 // 終了化
@@ -165,11 +177,23 @@ void Player::Finalize()
 	delete defenseIconSprite;
 	delete critIconSprite;
 	delete critDamageIconSprite;
+	for (int i = 0; i < 10; ++i)
+	{
+		delete numberSprites[i];
+		numberSprites[i] = nullptr;
+	}
+
+	delete percentSprite;
+	delete xSprite;
+	delete dotSprite;
+	delete upArrowSprite;
 }
 
 // 更新処理
 void Player::Update(float elapsedTime)
 {
+	prevStatus = status;
+
 	if (isInBattle)
 	{
 		UpdateAutoBattle(elapsedTime);
@@ -344,8 +368,8 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 			optionA->sprite->Render(
 				rc,
-				screenW * 0.30f - baseW * 0.5f,
-				screenH * 0.55f - baseH * 0.5f,
+				screenW * 0.25f - baseW * 0.5f,
+				screenH * 0.65f - baseH * 0.5f,
 				0,
 				baseW * scale,
 				baseH * scale,
@@ -362,8 +386,8 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 			optionB->sprite->Render(
 				rc,
-				screenW * 0.70f - baseW * 0.5f,
-				screenH * 0.55f - baseH * 0.5f,
+				screenW * 0.85f - baseW * 0.5f,
+				screenH * 0.65f - baseH * 0.5f,
 				0,
 				baseW * scale,
 				baseH * scale,
@@ -381,8 +405,8 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 			optionC->sprite->Render(
 				rc,
-				screenW * 0.50f - baseW * 0.5f,
-				screenH * 0.55f - baseH * 0.5f,
+				screenW * 0.575f - baseW * 0.5f,
+				screenH * 0.3f - baseH * 0.5f,
 				0,
 				baseW * scale,
 				baseH * scale,
@@ -405,7 +429,7 @@ void Player::DrawHPGauge(const RenderContext& rc)
 	// ===== HPゲージ =====
 	float hpRate = std::clamp(status.hp / 100.0f, 0.0f, 1.0f);
 
-	
+
 
 	hpFrameSprite->Render(
 		rc,
@@ -447,6 +471,26 @@ void Player::DrawHPGauge(const RenderContext& rc)
 		0,
 		1, 1, 1, 1
 	);
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		std::to_string((int)status.attack),
+		24.0f
+	);
+
+	if (IsIncreased(status.attack, prevStatus.attack))
+	{
+		upArrowSprite->Render(
+			rc,
+			iconX + iconSize + 80.0f,
+			iconY,
+			0,
+			24, 24,
+			0,
+			1, 1, 1, 1
+		);
+	}
 
 	// 防御
 	iconY += iconSize + iconSpace;
@@ -459,6 +503,13 @@ void Player::DrawHPGauge(const RenderContext& rc)
 		iconSize,
 		0,
 		1, 1, 1, 1
+	);
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		std::to_string((int)status.defense),
+		24.0f
 	);
 
 	// 会心
@@ -473,7 +524,18 @@ void Player::DrawHPGauge(const RenderContext& rc)
 		0,
 		1, 1, 1, 1
 	);
+	std::string critRateText =
+		std::to_string((int)(status.critRate * 100)) + "%";
 
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		critRateText,
+		24.0f
+	);
+
+	// 会心ダメージ
 	iconY += iconSize + iconSpace;
 	critDamageIconSprite->Render(
 		rc,
@@ -485,9 +547,96 @@ void Player::DrawHPGauge(const RenderContext& rc)
 		0,
 		1, 1, 1, 1
 	);
+
+	int critDmgInt = (int)(status.critDamage * 10);
+	std::string critDamageText =
+		std::to_string(critDmgInt / 10) + "." +
+		std::to_string(critDmgInt % 10) + "x";
+
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		critDamageText,
+		24.0f
+	);
+
+
+	// ↑
+	if (IsIncreased(status.attack, prevStatus.attack))
+	{
+		upArrowSprite->Render(
+			rc,
+			iconX + iconSize + 80.0f,
+			iconY,
+			0,
+			24.0f,
+			24.0f,
+			0,
+			1, 1, 1, 1
+		);
+	}
+}
+	
+void Player::DrawNumber(
+	const RenderContext& rc,
+	float x,
+	float y,
+	const std::string& text,
+	float size
+)
+{
+	float drawX = x;
+
+	for (char c : text)
+	{
+		Sprite* sprite = nullptr;
+		float advance = size * 0.8f;   // ← 基本間隔（全体を少し広め）
+
+		if (c >= '0' && c <= '9')
+		{
+			sprite = numberSprites[c - '0'];
+			advance = size * 0.8f;
+		}
+		else if (c == '%')
+		{
+			sprite = percentSprite;
+			advance = size * 0.9f;     // ← % は少し広め
+		}
+		else if (c == 'x')
+		{
+			sprite = xSprite;
+			advance = size * 0.8f;
+		}
+		else if (c == '.')
+		{
+			sprite = dotSprite;
+			advance = size * 0.7f;    // ← ドットは狭く
+		}
+
+		if (!sprite) continue;
+
+		sprite->Render(
+			rc,
+			drawX,
+			y,
+			0,
+			size,
+			size,
+			0,
+			1, 1, 1, 1
+		);
+
+		drawX += advance;
+	}
 }
 
 
+
+bool Player::IsIncreased(float current, float prev) const
+{
+	return current > prev;
+}
 
 
 // デバッグプリミティブ描画
@@ -784,18 +933,18 @@ void Player::CollisionProjectilesVsEnemies()
 // ジャンプ入力処理
 void Player::InputJump()
 {
-	// ボタン入力でジャンプ（ジャンプ回数制限つき）
-	GamePad& gamePad = Input::Instance().GetGamePad();
-	if (gamePad.GetButtonDown() & GamePad::BTN_A)
-	{
-		// ジャンプ回数制限
-		if (jumpCount < jumpLimit)
-		{
-			// ジャンプ
-			jumpCount++;
-			Jump(jumpSpeed);
-		}
-	}
+	//// ボタン入力でジャンプ（ジャンプ回数制限つき）
+	//GamePad& gamePad = Input::Instance().GetGamePad();
+	//if (gamePad.GetButtonDown() & GamePad::BTN_A)
+	//{
+	//	// ジャンプ回数制限
+	//	if (jumpCount < jumpLimit)
+	//	{
+	//		// ジャンプ
+	//		jumpCount++;
+	//		Jump(jumpSpeed);
+	//	}
+	//}
 }
 
 // 弾丸入力処理
@@ -956,7 +1105,7 @@ void Player::BeginAreaChoice()
 	stageImageEndZ = position.z + AREA_LENGTH * 1.0f;
 
 	// ===== 確定位置（★ここ）=====
-	areaDecisionZ = position.z + AREA_LENGTH * 0.75f;
+	areaDecisionZ = position.z + AREA_LENGTH * 0.9f;
 
 	showStageImage = false; // 最初は非表示
 }
@@ -968,9 +1117,9 @@ void Player::StartMiniBossBattle()
 	isInBattle = true;
 	isBossBattle = false;
 
-	enemyHP = 80.0f + currentAreaIndex * 10.0f;
-	enemyAttack = 10.0f + currentAreaIndex * 1.0f;
-	enemyDefense = 6.0f + currentAreaIndex * 1.0f;
+	enemyHP = 50.0f + currentAreaIndex * 10.0f;
+	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
+	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
 }
 
 
@@ -979,9 +1128,9 @@ void Player::StartBossBattle()
 	isInBattle = true;
 	isBossBattle = true;
 
-	enemyHP = 300.0f;
-	enemyAttack = 20.0f;
-	enemyDefense = 10.0f;
+	enemyHP = 500.0f;
+	enemyAttack = 25.0f;
+	enemyDefense = 15.0f;
 
 	EnemyManager::Instance().SpawnBossVisual();
 }
@@ -1031,10 +1180,10 @@ void Player::OnEnemyDefeated()
 	if (!isBossBattle)
 	{
 		// 中ボス報酬（全部上がる）
-		status.attack += 3.0f;
-		status.defense += 3.0f;
-		status.critRate += 0.03f;
-		status.critDamage += 0.3f;
+		status.attack += 5.0f;
+		status.defense += 5.0f;
+		status.critRate += 0.05f;
+		status.critDamage += 0.5f;
 		status.hp += 20.0f;
 	}
 	else
