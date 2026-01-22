@@ -12,6 +12,10 @@
 #include <d3d11.h>
 #include <System/Graphics.h>
 #include <random>
+#include <SceneManager.h>
+#include "SceneResult.h"
+#include "SceneOver.h"
+#include <BossEnemy.h>
 
 void Player::SelectRandomTrolleyImages()
 {
@@ -65,16 +69,15 @@ static const int AREA_COUNT = 7;
 
 AreaType Player::GetRandomGrowArea()
 {
-	int r = rand() % 5; 
+	int r = rand() % 4; 
 	switch (r)
 	{
 	case 0: return AreaType::AttackGrow;
 	case 1: return AreaType::DefenseGrow;
 	case 2: return AreaType::CritRateGrow;
 	case 3: return AreaType::CritDamageGrow;
-	case 4: return AreaType::BalancedGrow;
-	case 5: return AreaType::MiniBoss;
-	case 6: return AreaType::Boss;
+	case 4: return AreaType::MiniBoss;
+	case 5: return AreaType::Boss;
 	default: return AreaType::AttackGrow;
 	}
 }
@@ -101,6 +104,12 @@ void Player::Initialize()
 	status.critRate = 0.05f;
 	status.critDamage = 1.5f;
 	
+	hpFrameSprite = new Sprite("Data/Sprite/体力ゲージ.png");
+	hpBarSprite = new Sprite("Data/Sprite/体力.png");
+	attackIconSprite = new Sprite("Data/Sprite/拳.png");
+	defenseIconSprite = new Sprite("Data/Sprite/盾.png");
+	critIconSprite = new Sprite("Data/Sprite/会心ダメ.png");
+	critDamageIconSprite = new Sprite("Data/Sprite/会心.png");
 
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/火山.png"), AreaType::AttackGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/砂漠.png"), AreaType::DefenseGrow });
@@ -115,6 +124,7 @@ void Player::Initialize()
 // 終了化
 void Player::Finalize()
 {
+	// オプションスプライト解放
 	for (auto& opt : trolleyOptions)
 	{
 		delete opt.sprite;
@@ -122,8 +132,39 @@ void Player::Finalize()
 	trolleyOptions.clear();
 
 	delete hitSE;
+	hitSE = nullptr;
+
 	delete hitEffect;
+	hitEffect = nullptr;
+
 	delete model;
+	model = nullptr;
+
+	// ★ 状態を全部リセット
+	status = {};
+	position = { 0,0,0 };
+	velocity = { 0,0,0 };
+	
+
+	currentAreaIndex = 0;
+	lastSelectedArea = AreaType::None;
+	selectedArea = AreaType::None;
+
+	isInBattle = false;
+	isBossBattle = false;
+	showStageImage = false;
+	isChoosingAreaBonus = false;
+
+	jumpCount = 0;
+	battleTimer = 0.0f;
+
+
+	delete hpFrameSprite;
+	delete hpBarSprite;
+	delete attackIconSprite;
+	delete defenseIconSprite;
+	delete critIconSprite;
+	delete critDamageIconSprite;
 }
 
 // 更新処理
@@ -146,7 +187,8 @@ void Player::Update(float elapsedTime)
 	}
 
 
-	
+
+
 	// ★ ステージ画像の表示制御
 	if (isChoosingAreaBonus)
 	{
@@ -263,12 +305,25 @@ void Player::Update(float elapsedTime)
 			ApplyAreaGrowth(optionC->areaType);
 		}
 	}
+
+	
 }
+
+
+
+
+
 
 // 描画処理
 void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
 	renderer->Render(rc, transform, model, ShaderId::Lambert);
+
+
+	projectileManager.Render(rc, renderer);
+
+	// ===== HPゲージ描画 =====
+	DrawHPGauge(rc);
 
 	// 弾丸描画処理
 
@@ -323,7 +378,7 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 			bool selected = (selectedArea == optionC->areaType);
 			float scale = selected ? 0.9f : 0.6f;
 			float color = selected ? 0.9f : 0.6f;
-			
+
 			optionC->sprite->Render(
 				rc,
 				screenW * 0.50f - baseW * 0.5f,
@@ -336,7 +391,98 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 			);
 		}
 	}
+}
 
+	
+void Player::DrawHPGauge(const RenderContext& rc)
+{
+	const float baseX = 20.0f;
+	const float baseY = 20.0f;
+
+	const float gaugeW = 300.0f;
+	const float gaugeH = 40.0f;
+
+	// ===== HPゲージ =====
+	float hpRate = std::clamp(status.hp / 100.0f, 0.0f, 1.0f);
+
+	hpBarSprite->Render(
+		rc,
+		baseX,
+		baseY,
+		0,
+		gaugeW * hpRate,
+		gaugeH,
+		0,
+		1, 1, 1, 1
+	);
+
+	hpFrameSprite->Render(
+		rc,
+		baseX,
+		baseY,
+		0,
+		gaugeW,
+		gaugeH,
+		0,
+		1, 1, 1, 1
+	);
+
+	// ===== ステータス縦並び =====
+	const float iconSize = 50.0f;
+	const float iconSpace = 10.0f;
+
+	float iconX = baseX;
+	float iconY = baseY + gaugeH + 16.0f;
+
+	// 攻撃
+	attackIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+
+	// 防御
+	iconY += iconSize + iconSpace;
+	defenseIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+
+	// 会心
+	iconY += iconSize + iconSpace;
+	critIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+
+	iconY += iconSize + iconSpace;
+	critDamageIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
 }
 
 
@@ -367,9 +513,12 @@ void Player::DrawDebugGUI()
 			case AreaType::DefenseGrow:    ImGui::Text("Defense Up"); break;
 			case AreaType::CritRateGrow:   ImGui::Text("Crit Rate Up"); break;
 			case AreaType::CritDamageGrow: ImGui::Text("Crit Damage Up"); break;
-			case AreaType::BalancedGrow:   ImGui::Text("Balanced Up"); break;
+			//case AreaType::BalancedGrow:   ImGui::Text("Balanced Up"); break;
 			case AreaType::MiniBoss:       ImGui::Text("Mini Boss Area"); break;
 			case AreaType::Boss:           ImGui::Text("Boss Area"); break;
+
+		
+
 			default:                       ImGui::Text("None"); break;
 			}
 		};
@@ -738,7 +887,9 @@ void Player::ApplyAreaGrowth(AreaType area)
 		// HP減少
 		status.hp -= 10.0f;
 		if (status.hp < 0.0f)
-			status.hp = 0.0f;
+		{
+			SceneManager::Instance().ChangeScene(new SceneOver());
+		}
 
 		// 成長2倍
 		growthMultiplier = 2.0f;
@@ -765,13 +916,8 @@ void Player::ApplyAreaGrowth(AreaType area)
 		status.critDamage += 0.25f * growthMultiplier;
 		break;
 
-	case AreaType::BalancedGrow:
-		status.attack += 1.5f * growthMultiplier;
-		status.defense += 1.5f * growthMultiplier;
-		status.critRate += 0.01f * growthMultiplier;
-		status.critDamage += 0.15f * growthMultiplier;
-		break;
-
+	
+	
 
 
 	default:
@@ -869,7 +1015,10 @@ void Player::UpdateAutoBattle(float elapsedTime)
 
 	status.hp -= enemyDamage;
 	if (status.hp < 0.0f)
-		status.hp = 0.0f;
+	{
+		SceneManager::Instance().ChangeScene(new SceneOver());
+	}
+		
 }
 
 
@@ -890,6 +1039,7 @@ void Player::OnEnemyDefeated()
 	{
 		// ボス撃破（クリア）
 		// リザルト画面など
+		SceneManager::Instance().ChangeScene(new SceneResult());
 	}
 }
 
