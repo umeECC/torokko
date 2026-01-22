@@ -76,6 +76,8 @@ void Player::Initialize()
 	status.critRate = 0.05f;
 	status.critDamage = 1.5f;
 	
+	hpFrameSprite = new Sprite("Data/Sprite/体力ゲージ.png");
+	hpBarSprite = new Sprite("Data/Sprite/体力.png");
 
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/火山.png"), AreaType::AttackGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/砂漠.png"), AreaType::DefenseGrow });
@@ -97,6 +99,9 @@ void Player::Finalize()
 	delete hitSE;
 	delete hitEffect;
 	delete model;
+	delete hpFrameSprite;
+	delete hpBarSprite;
+
 }
 
 // 更新処理
@@ -249,10 +254,60 @@ void Player::Update(float elapsedTime)
 	}
 }
 
+
+void Player::DrawHPGauge(const RenderContext& rc)
+{
+	if (!hpFrameSprite || !hpBarSprite)
+		return;
+
+	const float screenX = 20.0f;
+	const float screenY = 20.0f;
+
+	const float gaugeW = 300.0f;
+	const float gaugeH = 40.0f;
+
+	// HP割合
+	float hpRate = status.hp / 100.0f;
+	hpRate = std::clamp(hpRate, 0.0f, 1.0f);
+
+	hpFrameSprite->Render(
+		rc,
+		screenX,
+		screenY,
+		0,
+		gaugeW,
+		gaugeH,
+		0,
+		1, 1, 1, 1
+	);
+
+	// ---- 中身（先に描く） ----
+	hpBarSprite->Render(
+		rc,
+		screenX,
+		screenY,
+		0,
+		gaugeW * hpRate,
+		gaugeH,
+		0,
+		1, 1, 1, 1
+	);
+
+	// ---- 枠（後に描く） ----
+	
+}
+
+
 // 描画処理
 void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
 	renderer->Render(rc, transform, model, ShaderId::Lambert);
+
+
+	projectileManager.Render(rc, renderer);
+
+	// ===== HPゲージ描画 =====
+	DrawHPGauge(rc);
 
 	// 弾丸描画処理
 
