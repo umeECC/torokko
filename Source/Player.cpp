@@ -15,6 +15,7 @@
 #include <SceneManager.h>
 #include "SceneResult.h"
 #include "SceneOver.h"
+#include <BossEnemy.h>
 
 void Player::SelectRandomTrolleyImages()
 {
@@ -23,22 +24,45 @@ void Player::SelectRandomTrolleyImages()
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
 
-	std::vector<int> indices(trolleyOptions.size());
-	for (int i = 0; i < (int)indices.size(); ++i)
-		indices[i] = i;
+	TrolleyOption* miniBossOption = nullptr;
+	std::vector<TrolleyOption*> normalOptions;
 
-	std::shuffle(indices.begin(), indices.end(), gen);
+	for (auto& opt : trolleyOptions)
+	{
+		if (opt.areaType == AreaType::MiniBoss)
+			miniBossOption = &opt;
+		else if (opt.areaType != AreaType::Boss)
+			normalOptions.push_back(&opt);
+	}
 
-	optionA = &trolleyOptions[indices[0]];
-	optionB = &trolleyOptions[indices[1]];
+	std::shuffle(normalOptions.begin(), normalOptions.end(), gen);
 
-	if (areaChoiceCount == 3)
-		optionC = &trolleyOptions[indices[2]];
-	else
+	// ===== 2択 =====
+	if (areaChoiceCount == 2)
+	{
+		optionA = normalOptions[0];
+		optionB = normalOptions[1];
 		optionC = nullptr;
+		return;
+	}
+
+	// ===== 3択 =====
+	optionA = normalOptions[0];
+	optionB = normalOptions[1];
+
+	// ★ 7・14だけ中ボス確定
+	if (isMiniBossChoiceArea && miniBossOption)
+	{
+		optionC = miniBossOption;
+	}
+	else
+	{
+		optionC = normalOptions[2];
+	}
 }
 
-static const float AREA_LENGTH = 50.0f;
+
+static const float AREA_LENGTH = 40.0f;
 static const int AREA_COUNT = 7;
 
 
@@ -52,6 +76,8 @@ AreaType Player::GetRandomGrowArea()
 	case 1: return AreaType::DefenseGrow;
 	case 2: return AreaType::CritRateGrow;
 	case 3: return AreaType::CritDamageGrow;
+	case 4: return AreaType::MiniBoss;
+	case 5: return AreaType::Boss;
 	default: return AreaType::AttackGrow;
 	}
 }
@@ -89,6 +115,8 @@ void Player::Initialize()
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/砂漠.png"), AreaType::DefenseGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/氷山.png"), AreaType::CritRateGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/洞窟.png"), AreaType::CritDamageGrow });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/中ボス部屋.png"), AreaType::MiniBoss });
+	trolleyOptions.push_back({ new Sprite("Data/Sprite/ボス部屋.png"), AreaType::Boss });
 	//trolleyOptions.push_back({ new Sprite("Data/Sprite/Jackpot.png"), AreaType::Jackpot });
 	for (int i = 0; i < 10; ++i)
 	{
@@ -183,7 +211,8 @@ void Player::Update(float elapsedTime)
 	}
 
 
-	
+
+
 	// ★ ステージ画像の表示制御
 	if (isChoosingAreaBonus)
 	{
@@ -269,20 +298,9 @@ void Player::Update(float elapsedTime)
 		}
 		else
 		{
-			
-			if (areaIndex == 7)
-			{
-				StartMiniBossBattle();
-			}
-			else if (areaIndex == 14)
-			{
-				StartMiniBossBattle();
-			}
-			else
-			{
-				BeginAreaChoice();
-			}
+			BeginAreaChoice();
 		}
+
 	}
 
 
@@ -350,8 +368,8 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 			optionA->sprite->Render(
 				rc,
-				screenW * 0.30f - baseW * 0.5f,
-				screenH * 0.55f - baseH * 0.5f,
+				screenW * 0.25f - baseW * 0.5f,
+				screenH * 0.65f - baseH * 0.5f,
 				0,
 				baseW * scale,
 				baseH * scale,
@@ -368,8 +386,8 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 			optionB->sprite->Render(
 				rc,
-				screenW * 0.70f - baseW * 0.5f,
-				screenH * 0.55f - baseH * 0.5f,
+				screenW * 0.85f - baseW * 0.5f,
+				screenH * 0.65f - baseH * 0.5f,
 				0,
 				baseW * scale,
 				baseH * scale,
@@ -387,8 +405,8 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 			optionC->sprite->Render(
 				rc,
-				screenW * 0.50f - baseW * 0.5f,
-				screenH * 0.55f - baseH * 0.5f,
+				screenW * 0.575f - baseW * 0.5f,
+				screenH * 0.3f - baseH * 0.5f,
 				0,
 				baseW * scale,
 				baseH * scale,
@@ -646,7 +664,12 @@ void Player::DrawDebugGUI()
 			case AreaType::DefenseGrow:    ImGui::Text("Defense Up"); break;
 			case AreaType::CritRateGrow:   ImGui::Text("Crit Rate Up"); break;
 			case AreaType::CritDamageGrow: ImGui::Text("Crit Damage Up"); break;
+			//case AreaType::BalancedGrow:   ImGui::Text("Balanced Up"); break;
+			case AreaType::MiniBoss:       ImGui::Text("Mini Boss Area"); break;
+			case AreaType::Boss:           ImGui::Text("Boss Area"); break;
+
 		
+
 			default:                       ImGui::Text("None"); break;
 			}
 		};
@@ -1063,20 +1086,26 @@ void Player::BeginAreaChoice()
 {
 	isChoosingAreaBonus = true;
 
+	// 7以降は3択、それまでは2択
 	if (currentAreaIndex >= 7)
 		areaChoiceCount = 3;
 	else
 		areaChoiceCount = 2;
 
+	// ★ 中ボス確定フラグ
+	isMiniBossChoiceArea =
+		(currentAreaIndex == 7 || currentAreaIndex == 14);
+
+
 	SelectRandomTrolleyImages();
 	selectedArea = optionA->areaType;
 
 	// ===== 表示区間 =====
-	stageImageStartZ = position.z + AREA_LENGTH * 0.6f;
-	stageImageEndZ = position.z + AREA_LENGTH * 0.9f;
+	stageImageStartZ = position.z + AREA_LENGTH * 0.5f;
+	stageImageEndZ = position.z + AREA_LENGTH * 1.0f;
 
 	// ===== 確定位置（★ここ）=====
-	areaDecisionZ = position.z + AREA_LENGTH * 0.75f;
+	areaDecisionZ = position.z + AREA_LENGTH * 0.9f;
 
 	showStageImage = false; // 最初は非表示
 }
@@ -1088,9 +1117,9 @@ void Player::StartMiniBossBattle()
 	isInBattle = true;
 	isBossBattle = false;
 
-	enemyHP = 80.0f + currentAreaIndex * 10.0f;
-	enemyAttack = 10.0f + currentAreaIndex * 1.0f;
-	enemyDefense = 6.0f + currentAreaIndex * 1.0f;
+	enemyHP = 50.0f + currentAreaIndex * 10.0f;
+	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
+	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
 }
 
 
@@ -1099,9 +1128,11 @@ void Player::StartBossBattle()
 	isInBattle = true;
 	isBossBattle = true;
 
-	enemyHP = 300.0f;
-	enemyAttack = 20.0f;
-	enemyDefense = 10.0f;
+	enemyHP = 500.0f;
+	enemyAttack = 25.0f;
+	enemyDefense = 15.0f;
+
+	EnemyManager::Instance().SpawnBossVisual();
 }
 
 
@@ -1149,10 +1180,10 @@ void Player::OnEnemyDefeated()
 	if (!isBossBattle)
 	{
 		// 中ボス報酬（全部上がる）
-		status.attack += 3.0f;
-		status.defense += 3.0f;
-		status.critRate += 0.03f;
-		status.critDamage += 0.3f;
+		status.attack += 5.0f;
+		status.defense += 5.0f;
+		status.critRate += 0.05f;
+		status.critDamage += 0.5f;
 		status.hp += 20.0f;
 	}
 	else

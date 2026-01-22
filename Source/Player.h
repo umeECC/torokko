@@ -121,7 +121,7 @@ private:
 	/*TrolleyOption* leftOption = nullptr;
 	TrolleyOption* rightOption = nullptr;*/
 	bool areaChoiceStarted = false;
-
+	bool isMiniBossChoiceArea;
 	bool showTrolleyUI = false;
 	bool trolleyChosen = false;
 	Sprite* trolleySprite = nullptr;

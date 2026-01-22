@@ -174,10 +174,7 @@
     <ClInclude Include="Source\Effect.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\SceneResult.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\SceneOver.h">
+    <ClInclude Include="Source\BossEnemy.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
@@ -317,10 +314,7 @@
     <ClCompile Include="Source\Effect.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\SceneResult.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\SceneOver.cpp">
+    <ClCompile Include="Source\BossEnemy.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
