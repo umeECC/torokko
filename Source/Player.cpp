@@ -387,16 +387,7 @@ void Player::DrawHPGauge(const RenderContext& rc)
 	// ===== HPゲージ =====
 	float hpRate = std::clamp(status.hp / 100.0f, 0.0f, 1.0f);
 
-	hpBarSprite->Render(
-		rc,
-		baseX,
-		baseY,
-		0,
-		gaugeW * hpRate,
-		gaugeH,
-		0,
-		1, 1, 1, 1
-	);
+	
 
 	hpFrameSprite->Render(
 		rc,
@@ -404,6 +395,17 @@ void Player::DrawHPGauge(const RenderContext& rc)
 		baseY,
 		0,
 		gaugeW,
+		gaugeH,
+		0,
+		1, 1, 1, 1
+	);
+
+	hpBarSprite->Render(
+		rc,
+		baseX,
+		baseY,
+		0,
+		gaugeW * hpRate,
 		gaugeH,
 		0,
 		1, 1, 1, 1
