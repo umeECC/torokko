@@ -80,6 +80,10 @@ void Player::Initialize()
 	
 	hpFrameSprite = new Sprite("Data/Sprite/体力ゲージ.png");
 	hpBarSprite = new Sprite("Data/Sprite/体力.png");
+	attackIconSprite = new Sprite("Data/Sprite/拳.png");
+	defenseIconSprite = new Sprite("Data/Sprite/盾.png");
+	critIconSprite = new Sprite("Data/Sprite/会心ダメ.png");
+	critDamageIconSprite = new Sprite("Data/Sprite/会心.png");
 
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/火山.png"), AreaType::AttackGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/砂漠.png"), AreaType::DefenseGrow });
@@ -129,7 +133,10 @@ void Player::Finalize()
 
 	delete hpFrameSprite;
 	delete hpBarSprite;
-
+	delete attackIconSprite;
+	delete defenseIconSprite;
+	delete critIconSprite;
+	delete critDamageIconSprite;
 }
 
 // 更新処理
@@ -285,47 +292,8 @@ void Player::Update(float elapsedTime)
 }
 
 
-void Player::DrawHPGauge(const RenderContext& rc)
-{
-	if (!hpFrameSprite || !hpBarSprite)
-		return;
 
-	const float screenX = 20.0f;
-	const float screenY = 20.0f;
 
-	const float gaugeW = 300.0f;
-	const float gaugeH = 40.0f;
-
-	// HP割合
-	float hpRate = status.hp / 100.0f;
-	hpRate = std::clamp(hpRate, 0.0f, 1.0f);
-
-	hpFrameSprite->Render(
-		rc,
-		screenX,
-		screenY,
-		0,
-		gaugeW,
-		gaugeH,
-		0,
-		1, 1, 1, 1
-	);
-
-	// ---- 中身（先に描く） ----
-	hpBarSprite->Render(
-		rc,
-		screenX,
-		screenY,
-		0,
-		gaugeW * hpRate,
-		gaugeH,
-		0,
-		1, 1, 1, 1
-	);
-
-	// ---- 枠（後に描く） ----
-	
-}
 
 
 // 描画処理
@@ -392,7 +360,7 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 			bool selected = (selectedArea == optionC->areaType);
 			float scale = selected ? 0.9f : 0.6f;
 			float color = selected ? 0.9f : 0.6f;
-			
+
 			optionC->sprite->Render(
 				rc,
 				screenW * 0.50f - baseW * 0.5f,
@@ -405,9 +373,98 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 			);
 		}
 	}
+}
 
+	
+void Player::DrawHPGauge(const RenderContext& rc)
+{
+	const float baseX = 20.0f;
+	const float baseY = 20.0f;
 
+	const float gaugeW = 300.0f;
+	const float gaugeH = 40.0f;
 
+	// ===== HPゲージ =====
+	float hpRate = std::clamp(status.hp / 100.0f, 0.0f, 1.0f);
+
+	hpBarSprite->Render(
+		rc,
+		baseX,
+		baseY,
+		0,
+		gaugeW * hpRate,
+		gaugeH,
+		0,
+		1, 1, 1, 1
+	);
+
+	hpFrameSprite->Render(
+		rc,
+		baseX,
+		baseY,
+		0,
+		gaugeW,
+		gaugeH,
+		0,
+		1, 1, 1, 1
+	);
+
+	// ===== ステータス縦並び =====
+	const float iconSize = 50.0f;
+	const float iconSpace = 10.0f;
+
+	float iconX = baseX;
+	float iconY = baseY + gaugeH + 16.0f;
+
+	// 攻撃
+	attackIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+
+	// 防御
+	iconY += iconSize + iconSpace;
+	defenseIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+
+	// 会心
+	iconY += iconSize + iconSpace;
+	critIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+
+	iconY += iconSize + iconSpace;
+	critDamageIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
 }
 
 
