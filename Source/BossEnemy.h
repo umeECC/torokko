@@ -12,7 +12,7 @@ public:
     bool isBossBattle = false;   // ƒ{ƒXí’†‚©
     bool bossDefeated = false;   // Œ‚”jÏ‚İ‚©
 
-    DirectX::XMFLOAT3 modelOffset = {0.0f, 0.0f, 850.0f };
+    DirectX::XMFLOAT3 modelOffset = {0.0f, 0.0f, 0.0f };
     void Update(float elapsedTime) override;
     void Render(const RenderContext& rc, ModelRenderer* renderer) override;
 };

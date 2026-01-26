@@ -293,7 +293,7 @@ void Player::Update(float elapsedTime)
 
 	// ===== ③ エリア侵入判定 =====
 
-	int areaIndex = 21;/*static_cast<int>(position.z / AREA_LENGTH);*/
+	int areaIndex = static_cast<int>(position.z / AREA_LENGTH);
 
 	if (areaIndex != currentAreaIndex)
 	{
@@ -302,7 +302,7 @@ void Player::Update(float elapsedTime)
 		stageImageShown = false;
 		
 
-		if (areaIndex == 21)
+		if (areaIndex == -1)
 		{
 			StartBossBattle();
 		}
@@ -351,33 +351,16 @@ void Player::Update(float elapsedTime)
 // 描画処理
 void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
-	if (isBossBattle)
-		DrawBossStatus(rc);
-
-
+	// ===== 3D描画 =====
 	renderer->Render(rc, transform, model, ShaderId::Lambert);
-
-
 	projectileManager.Render(rc, renderer);
 
-	// ===== HPゲージ描画 =====
-	DrawHPGauge(rc);
+	// ===== UI描画 =====
+	DrawHPGauge(rc);          // プレイヤー左上
 
-	// 弾丸描画処理
+	DrawEnemyStatus(rc);      // MiniBoss / Boss 共通（右上）
 
-	projectileManager.Render(rc, renderer);
-
-	renderer->Render(rc, transform, model, ShaderId::Lambert);
-
-	projectileManager.Render(rc, renderer);
-
-	DrawHPGauge(rc);
-
-	if (isBossBattle)
-	{
-		DrawBossStatus(rc);
-	}
-
+	// エリア選択UI
 	if (showStageImage && optionA && optionB)
 	{
 		float screenW = 1280.0f;
@@ -421,7 +404,7 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 			);
 		}
 
-		// C（7エリア以降）
+		// C（3択）
 		if (areaChoiceCount == 3 && optionC)
 		{
 			bool selected = (selectedArea == optionC->areaType);
@@ -442,14 +425,92 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 	}
 }
 
-void Player::DrawBossStatus(const RenderContext& rc)
+//void Player::DrawBossStatus(const RenderContext& rc)
+//{
+//	const float baseX = 20.0f;
+//	const float baseY = 20.0f;
+//
+//	const float screenW = 1280.0f;
+//
+//	// プレイヤーと同じサイズ
+//	const float gaugeW = 300.0f;
+//	const float gaugeH = 40.0f;
+//	const float iconSize = 50.0f;
+//	const float iconSpace = 10.0f;
+//	const float numberSize = 24.0f;
+//
+//	float x = screenW - baseX - gaugeW;
+//	float y = baseY;
+//
+//	// ===== HP =====
+//	const float maxBossHP = 500.0f;
+//	float hpRate = std::clamp(enemyHP / maxBossHP, 0.0f, 1.0f);
+//
+//	bossHpFrameSprite->Render(rc, x, y, 0, gaugeW, gaugeH, 0, 1, 1, 1, 1);
+//	bossHpBarSprite->Render(
+//		rc,
+//		x,
+//		y,
+//		0,
+//		gaugeW * hpRate,
+//		gaugeH,
+//		0,
+//		1, 1.0f, 1.0f, 1
+//	);
+//
+//	// ===== ステータス =====
+//	float iconX = x;
+//	float iconY = y + gaugeH + 16.0f;
+//
+//	// 攻撃（拳）
+//	attackIconSprite->Render(
+//		rc,
+//		iconX,
+//		iconY,
+//		0,
+//		iconSize,
+//		iconSize,
+//		0,
+//		1, 1, 1, 1
+//	);
+//	DrawNumber(
+//		rc,
+//		iconX + iconSize + 8.0f,
+//		iconY,
+//		std::to_string((int)enemyAttack),
+//		numberSize
+//	);
+//
+//	// 防御（盾）
+//	iconY += iconSize + iconSpace;
+//	defenseIconSprite->Render(
+//		rc,
+//		iconX,
+//		iconY,
+//		0,
+//		iconSize,
+//		iconSize,
+//		0,
+//		1, 1, 1, 1
+//	);
+//	DrawNumber(
+//		rc,
+//		iconX + iconSize + 8.0f,
+//		iconY,
+//		std::to_string((int)enemyDefense),
+//		numberSize
+//	);
+//}
+
+void Player::DrawEnemyStatus(const RenderContext& rc)
 {
+	if (!isInBattle) return;
+
 	const float baseX = 20.0f;
 	const float baseY = 20.0f;
-
 	const float screenW = 1280.0f;
 
-	// プレイヤーと同じサイズ
+	// プレイヤーUIと同じサイズ
 	const float gaugeW = 300.0f;
 	const float gaugeH = 40.0f;
 	const float iconSize = 50.0f;
@@ -459,12 +520,31 @@ void Player::DrawBossStatus(const RenderContext& rc)
 	float x = screenW - baseX - gaugeW;
 	float y = baseY;
 
-	// ===== HP =====
-	const float maxBossHP = 500.0f;
-	float hpRate = std::clamp(enemyHP / maxBossHP, 0.0f, 1.0f);
+	// ===== ラベル =====
+	DrawNumber(
+		rc,
+		x,
+		y - 28.0f,
+		isBossBattle ? "BOSS" : "MINI",
+		24.0f
+	);
 
-	bossHpFrameSprite->Render(rc, x, y, 0, gaugeW, gaugeH, 0, 1, 1, 1, 1);
-	bossHpBarSprite->Render(
+	// ===== HP =====
+	float hpRate = enemyHP / maxEnemyHP;
+	hpRate = std::clamp(hpRate, 0.0f, 1.0f);
+
+	hpFrameSprite->Render(
+		rc,
+		x,
+		y,
+		0,
+		gaugeW,
+		gaugeH,
+		0,
+		1, 1, 1, 1
+	);
+
+	hpBarSprite->Render(
 		rc,
 		x,
 		y,
@@ -472,14 +552,14 @@ void Player::DrawBossStatus(const RenderContext& rc)
 		gaugeW * hpRate,
 		gaugeH,
 		0,
-		1, 1.0f, 1.0f, 1
+		1, 0.3f, 0.3f, 1
 	);
 
 	// ===== ステータス =====
 	float iconX = x;
 	float iconY = y + gaugeH + 16.0f;
 
-	// 攻撃（拳）
+	// 攻撃
 	attackIconSprite->Render(
 		rc,
 		iconX,
@@ -498,7 +578,7 @@ void Player::DrawBossStatus(const RenderContext& rc)
 		numberSize
 	);
 
-	// 防御（盾）
+	// 防御
 	iconY += iconSize + iconSpace;
 	defenseIconSprite->Render(
 		rc,
@@ -518,7 +598,6 @@ void Player::DrawBossStatus(const RenderContext& rc)
 		numberSize
 	);
 }
-
 
 	
 void Player::DrawHPGauge(const RenderContext& rc)
@@ -860,6 +939,20 @@ void Player::DrawDebugGUI()
 
 	ImGui::End();
 }
+
+void Player::StartMiniBossBattle()
+{
+	isInBattle = true;
+	isBossBattle = false;
+	isMiniBossBattle = true;
+
+	maxEnemyHP = 50.0f + currentAreaIndex * 10.0f;
+	enemyHP = maxEnemyHP;
+
+	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
+	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
+}
+
 
 // スティック入力値から移動ベクトルを取得
 DirectX::XMFLOAT3 Player::GetMoveVec() const
@@ -1213,30 +1306,42 @@ void Player::BeginAreaChoice()
 	showStageImage = false; // 最初は非表示
 }
 
-
-
-void Player::StartMiniBossBattle()
-{
-	isInBattle = true;
-	isBossBattle = false;
-
-	enemyHP = 50.0f + currentAreaIndex * 10.0f;
-	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
-	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
-}
-
-
 void Player::StartBossBattle()
 {
 	isInBattle = true;
 	isBossBattle = true;
+	isMiniBossBattle = false;
 
-	enemyHP = 500.0f;
-	enemyAttack = 25.0f;
+	maxEnemyHP = BOSS_HP;
+	enemyHP = maxEnemyHP;
+
+	enemyAttack = 30.0f;
 	enemyDefense = 15.0f;
-
-	EnemyManager::Instance().SpawnBossVisual();
 }
+
+
+//void Player::StartMiniBossBattle()
+//{
+//	isInBattle = true;
+//	isBossBattle = false;
+//
+//	enemyHP = 50.0f + currentAreaIndex * 10.0f;
+//	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
+//	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
+//}
+//
+//
+//void Player::StartBossBattle()
+//{
+//	isInBattle = true;
+//	isBossBattle = true;
+//
+//	enemyHP = 500.0f;
+//	enemyAttack = 25.0f;
+//	enemyDefense = 15.0f;
+//
+//	EnemyManager::Instance().SpawnBossVisual();
+//}
 
 
 void Player::UpdateAutoBattle(float elapsedTime)
