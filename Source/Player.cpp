@@ -87,11 +87,12 @@ AreaType Player::GetRandomGrowArea()
 // 初期化
 void Player::Initialize() 
 {
-	model = new Model("Data/Model/Mr.Incredible/MineCart.mdl");
+	model = new Model("Data/Model/fighter/ORCA_4.5GEN_JET.mdl");
 
 	// モデルが大きいのでスケーリング
-	scale.x = scale.y = scale.z = 1.0f;
-	angle.y = DirectX::XMConvertToRadians(90.0f);
+	scale.x = scale.y = scale.z = 0.003f;
+	
+	
 	// ヒットエフェクト読み込み
 	hitEffect = new Effect("Data/Effect/Hit.efk");
 
