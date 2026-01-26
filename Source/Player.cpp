@@ -344,10 +344,6 @@ void Player::Update(float elapsedTime)
 }
 
 
-
-
-
-
 // 描画処理
 void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
