@@ -70,18 +70,18 @@ void EnemySlime::Render(const RenderContext& rc, ModelRenderer* renderer)
 // デバッグプリミティブ描画
 void EnemySlime::RenderDebugPrimitive(const RenderContext& rc, ShapeRenderer* renderer)
 {
-	// 基底クラスのデバッグプリミティブ描画
-	Enemy::RenderDebugPrimitive(rc, renderer);
+	//// 基底クラスのデバッグプリミティブ描画
+	//Enemy::RenderDebugPrimitive(rc, renderer);
 
-	// 縄張り範囲をデバッグ円柱描画
-	renderer->RenderCylinder(rc, territoryOrigin, territoryRange, 1.0f,
-		DirectX::XMFLOAT4(0, 1, 0, 1));
+	//// 縄張り範囲をデバッグ円柱描画
+	//renderer->RenderCylinder(rc, territoryOrigin, territoryRange, 1.0f,
+	//	DirectX::XMFLOAT4(0, 1, 0, 1));
 
-	// ターゲット位置をデバッグ球描画
-	renderer->RenderSphere(rc, targetPosition, 1.0f, DirectX::XMFLOAT4(1, 1, 0, 1));
+	//// ターゲット位置をデバッグ球描画
+	//renderer->RenderSphere(rc, targetPosition, 1.0f, DirectX::XMFLOAT4(1, 1, 0, 1));
 
-	// 索敵範囲をデバッグ円柱描画
-	renderer->RenderCylinder(rc, position, searchRange, 1.0f, DirectX::XMFLOAT4(1, 0, 0, 1));
+	//// 索敵範囲をデバッグ円柱描画
+	//renderer->RenderCylinder(rc, position, searchRange, 1.0f, DirectX::XMFLOAT4(1, 0, 0, 1));
 }
 
 // 縄張り設定
