@@ -296,6 +296,8 @@ void Player::Update(float elapsedTime)
 		{
 			StartBossBattle();
 		}
+
+
 		else
 		{
 			BeginAreaChoice();
@@ -1064,7 +1066,7 @@ void Player::ApplyAreaGrowth(AreaType area)
 		break;
 
 	case AreaType::CritDamageGrow:
-		status.critDamage += 0.25f * growthMultiplier;
+		status.critDamage += 0.2f * growthMultiplier;
 		break;
 
 	
@@ -1117,9 +1119,9 @@ void Player::StartMiniBossBattle()
 	isInBattle = true;
 	isBossBattle = false;
 
-	enemyHP = 50.0f + currentAreaIndex * 10.0f;
-	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
-	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
+	enemyHP = 60.0f + currentAreaIndex * 10.0f;
+	enemyAttack = 6.0f + currentAreaIndex * 1.0f;
+	enemyDefense = 4.0f + currentAreaIndex * 1.0f;
 }
 
 
