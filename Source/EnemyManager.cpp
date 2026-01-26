@@ -1,6 +1,8 @@
 #include "EnemyManager.h"
 #include "Collision.h"
 #include "BossEnemy.h"
+#include <Player.h>
+
 // XVˆ—
 void EnemyManager::Update(float elapsedTime)
 {
@@ -33,7 +35,6 @@ void EnemyManager::Update(float elapsedTime)
 
 
 
-#include <Player.h>
 
 void EnemyManager::SpawnBossVisual()
 {

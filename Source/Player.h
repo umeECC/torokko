@@ -225,4 +225,10 @@ private:
 		const std::string& text,
 		float size
 	);
+
+	void DrawBossStatus(const RenderContext& rc);
+
+	Sprite* bossHpFrameSprite = nullptr;
+	Sprite* bossHpBarSprite = nullptr;
+
 };

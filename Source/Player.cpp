@@ -118,6 +118,10 @@ void Player::Initialize()
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/中ボス部屋.png"), AreaType::MiniBoss });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/ボス部屋.png"), AreaType::Boss });
 	//trolleyOptions.push_back({ new Sprite("Data/Sprite/Jackpot.png"), AreaType::Jackpot });
+
+	bossHpFrameSprite = new Sprite("Data/Sprite/体力ゲージ.png");
+	bossHpBarSprite = new Sprite("Data/Sprite/体力.png");
+
 	for (int i = 0; i < 10; ++i)
 	{
 		numberSprites[i] = new Sprite(
@@ -158,7 +162,7 @@ void Player::Finalize()
 	velocity = { 0,0,0 };
 	
 
-	currentAreaIndex = 0;
+	currentAreaIndex = 20;
 	lastSelectedArea = AreaType::None;
 	selectedArea = AreaType::None;
 
@@ -187,6 +191,12 @@ void Player::Finalize()
 	delete xSprite;
 	delete dotSprite;
 	delete upArrowSprite;
+
+	delete bossHpFrameSprite;
+	delete bossHpBarSprite;
+	bossHpFrameSprite = nullptr;
+	bossHpBarSprite = nullptr;
+
 }
 
 // 更新処理
@@ -283,7 +293,7 @@ void Player::Update(float elapsedTime)
 
 	// ===== ③ エリア侵入判定 =====
 
-	int areaIndex = static_cast<int>(position.z / AREA_LENGTH);
+	int areaIndex = 21;/*static_cast<int>(position.z / AREA_LENGTH);*/
 
 	if (areaIndex != currentAreaIndex)
 	{
@@ -341,6 +351,10 @@ void Player::Update(float elapsedTime)
 // 描画処理
 void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
+	if (isBossBattle)
+		DrawBossStatus(rc);
+
+
 	renderer->Render(rc, transform, model, ShaderId::Lambert);
 
 
@@ -352,6 +366,17 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 	// 弾丸描画処理
 
 	projectileManager.Render(rc, renderer);
+
+	renderer->Render(rc, transform, model, ShaderId::Lambert);
+
+	projectileManager.Render(rc, renderer);
+
+	DrawHPGauge(rc);
+
+	if (isBossBattle)
+	{
+		DrawBossStatus(rc);
+	}
 
 	if (showStageImage && optionA && optionB)
 	{
@@ -416,6 +441,84 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 		}
 	}
 }
+
+void Player::DrawBossStatus(const RenderContext& rc)
+{
+	const float baseX = 20.0f;
+	const float baseY = 20.0f;
+
+	const float screenW = 1280.0f;
+
+	// プレイヤーと同じサイズ
+	const float gaugeW = 300.0f;
+	const float gaugeH = 40.0f;
+	const float iconSize = 50.0f;
+	const float iconSpace = 10.0f;
+	const float numberSize = 24.0f;
+
+	float x = screenW - baseX - gaugeW;
+	float y = baseY;
+
+	// ===== HP =====
+	const float maxBossHP = 500.0f;
+	float hpRate = std::clamp(enemyHP / maxBossHP, 0.0f, 1.0f);
+
+	bossHpFrameSprite->Render(rc, x, y, 0, gaugeW, gaugeH, 0, 1, 1, 1, 1);
+	bossHpBarSprite->Render(
+		rc,
+		x,
+		y,
+		0,
+		gaugeW * hpRate,
+		gaugeH,
+		0,
+		1, 1.0f, 1.0f, 1
+	);
+
+	// ===== ステータス =====
+	float iconX = x;
+	float iconY = y + gaugeH + 16.0f;
+
+	// 攻撃（拳）
+	attackIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		std::to_string((int)enemyAttack),
+		numberSize
+	);
+
+	// 防御（盾）
+	iconY += iconSize + iconSpace;
+	defenseIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		std::to_string((int)enemyDefense),
+		numberSize
+	);
+}
+
 
 	
 void Player::DrawHPGauge(const RenderContext& rc)
