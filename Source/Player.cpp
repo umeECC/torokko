@@ -283,7 +283,7 @@ void Player::Update(float elapsedTime)
 
 	// ===== ③ エリア侵入判定 =====
 
-	int areaIndex = static_cast<int>(position.z / AREA_LENGTH);
+	int areaIndex =static_cast<int>(position.z / AREA_LENGTH);
 
 	if (areaIndex != currentAreaIndex)
 	{
@@ -296,6 +296,7 @@ void Player::Update(float elapsedTime)
 		{
 			StartBossBattle();
 		}
+
 
 
 		else
@@ -815,7 +816,7 @@ void Player::InputMove(float elapsedTime)
 	// 進行ベクトル取得
 	DirectX::XMFLOAT3 moveVec = GetMoveVec();
 
-	Player::position.z += 0.05f;
+	Player::position.z += 0.1f;
 
 	//if (Player::position.z >= 50.0f)
 	//{
@@ -1070,7 +1071,9 @@ void Player::ApplyAreaGrowth(AreaType area)
 		break;
 
 	
-	
+	case AreaType::MiniBoss:
+		StartMiniBossBattle();
+		break;
 
 
 	default:
