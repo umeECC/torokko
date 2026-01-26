@@ -1264,7 +1264,9 @@ void Player::ApplyAreaGrowth(AreaType area)
 		status.critDamage += 0.25f * growthMultiplier;
 		break;
 
-	
+	case AreaType::MiniBoss:
+		StartMiniBossBattle();
+		break;
 	
 
 
@@ -1321,28 +1323,9 @@ void Player::StartBossBattle()
 }
 
 
-//void Player::StartMiniBossBattle()
-//{
-//	isInBattle = true;
-//	isBossBattle = false;
-//
-//	enemyHP = 50.0f + currentAreaIndex * 10.0f;
-//	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
-//	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
-//}
-//
-//
-//void Player::StartBossBattle()
-//{
-//	isInBattle = true;
-//	isBossBattle = true;
-//
-//	enemyHP = 500.0f;
-//	enemyAttack = 25.0f;
-//	enemyDefense = 15.0f;
-//
-//	EnemyManager::Instance().SpawnBossVisual();
-//}
+
+
+
 
 
 void Player::UpdateAutoBattle(float elapsedTime)
