@@ -62,8 +62,8 @@ void Player::SelectRandomTrolleyImages()
 }
 
 
-static const float AREA_LENGTH = 40.0f;
-static const int AREA_COUNT = 7;
+static const float AREA_LENGTH = 50.0f;
+static const int AREA_COUNT = 0;
 
 
 
@@ -87,11 +87,12 @@ AreaType Player::GetRandomGrowArea()
 // 初期化
 void Player::Initialize() 
 {
-	model = new Model("Data/Model/Mr.Incredible/MineCart.mdl");
+	model = new Model("Data/Model/fighter/ORCA_4.5GEN_JET.mdl");
 
 	// モデルが大きいのでスケーリング
-	scale.x = scale.y = scale.z = 1.0f;
-	angle.y = DirectX::XMConvertToRadians(90.0f);
+	scale.x = scale.y = scale.z = 0.003f;
+	
+	
 	// ヒットエフェクト読み込み
 	hitEffect = new Effect("Data/Effect/Hit.efk");
 
@@ -118,6 +119,10 @@ void Player::Initialize()
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/中ボス部屋.png"), AreaType::MiniBoss });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/ボス部屋.png"), AreaType::Boss });
 	//trolleyOptions.push_back({ new Sprite("Data/Sprite/Jackpot.png"), AreaType::Jackpot });
+
+	bossHpFrameSprite = new Sprite("Data/Sprite/体力ゲージ.png");
+	bossHpBarSprite = new Sprite("Data/Sprite/体力.png");
+
 	for (int i = 0; i < 10; ++i)
 	{
 		numberSprites[i] = new Sprite(
@@ -158,7 +163,7 @@ void Player::Finalize()
 	velocity = { 0,0,0 };
 	
 
-	currentAreaIndex = 0;
+	currentAreaIndex = 20;
 	lastSelectedArea = AreaType::None;
 	selectedArea = AreaType::None;
 
@@ -187,6 +192,12 @@ void Player::Finalize()
 	delete xSprite;
 	delete dotSprite;
 	delete upArrowSprite;
+
+	delete bossHpFrameSprite;
+	delete bossHpBarSprite;
+	bossHpFrameSprite = nullptr;
+	bossHpBarSprite = nullptr;
+
 }
 
 // 更新処理
@@ -298,6 +309,8 @@ void Player::Update(float elapsedTime)
 		stageImageShown = false;
 		
 
+
+		
 		if (areaIndex == 21)
 		{
 			StartBossBattle();
@@ -340,25 +353,19 @@ void Player::Update(float elapsedTime)
 }
 
 
-
-
-
-
 // 描画処理
 void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
+	// ===== 3D描画 =====
 	renderer->Render(rc, transform, model, ShaderId::Lambert);
-
-
 	projectileManager.Render(rc, renderer);
 
-	// ===== HPゲージ描画 =====
-	DrawHPGauge(rc);
+	// ===== UI描画 =====
+	DrawHPGauge(rc);          // プレイヤー左上
 
-	// 弾丸描画処理
+	DrawEnemyStatus(rc);      // MiniBoss / Boss 共通（右上）
 
-	projectileManager.Render(rc, renderer);
-
+	// エリア選択UI
 	if (showStageImage && optionA && optionB)
 	{
 		float screenW = 1280.0f;
@@ -402,7 +409,7 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 			);
 		}
 
-		// C（7エリア以降）
+		// C（3択）
 		if (areaChoiceCount == 3 && optionC)
 		{
 			bool selected = (selectedArea == optionC->areaType);
@@ -432,6 +439,180 @@ bool Player::IsInBossRoom() const
 	//("[BossCheck] Z=%.1f Area=%d\n", position.z, areaIndex);
 
 	return areaIndex >= 20; // ← 仮
+}
+
+//void Player::DrawBossStatus(const RenderContext& rc)
+//{
+//	const float baseX = 20.0f;
+//	const float baseY = 20.0f;
+//
+//	const float screenW = 1280.0f;
+//
+//	// プレイヤーと同じサイズ
+//	const float gaugeW = 300.0f;
+//	const float gaugeH = 40.0f;
+//	const float iconSize = 50.0f;
+//	const float iconSpace = 10.0f;
+//	const float numberSize = 24.0f;
+//
+//	float x = screenW - baseX - gaugeW;
+//	float y = baseY;
+//
+//	// ===== HP =====
+//	const float maxBossHP = 500.0f;
+//	float hpRate = std::clamp(enemyHP / maxBossHP, 0.0f, 1.0f);
+//
+//	bossHpFrameSprite->Render(rc, x, y, 0, gaugeW, gaugeH, 0, 1, 1, 1, 1);
+//	bossHpBarSprite->Render(
+//		rc,
+//		x,
+//		y,
+//		0,
+//		gaugeW * hpRate,
+//		gaugeH,
+//		0,
+//		1, 1.0f, 1.0f, 1
+//	);
+//
+//	// ===== ステータス =====
+//	float iconX = x;
+//	float iconY = y + gaugeH + 16.0f;
+//
+//	// 攻撃（拳）
+//	attackIconSprite->Render(
+//		rc,
+//		iconX,
+//		iconY,
+//		0,
+//		iconSize,
+//		iconSize,
+//		0,
+//		1, 1, 1, 1
+//	);
+//	DrawNumber(
+//		rc,
+//		iconX + iconSize + 8.0f,
+//		iconY,
+//		std::to_string((int)enemyAttack),
+//		numberSize
+//	);
+//
+//	// 防御（盾）
+//	iconY += iconSize + iconSpace;
+//	defenseIconSprite->Render(
+//		rc,
+//		iconX,
+//		iconY,
+//		0,
+//		iconSize,
+//		iconSize,
+//		0,
+//		1, 1, 1, 1
+//	);
+//	DrawNumber(
+//		rc,
+//		iconX + iconSize + 8.0f,
+//		iconY,
+//		std::to_string((int)enemyDefense),
+//		numberSize
+//	);
+//}
+
+void Player::DrawEnemyStatus(const RenderContext& rc)
+{
+	if (!isInBattle) return;
+
+	const float baseX = 20.0f;
+	const float baseY = 20.0f;
+	const float screenW = 1280.0f;
+
+	// プレイヤーUIと同じサイズ
+	const float gaugeW = 300.0f;
+	const float gaugeH = 40.0f;
+	const float iconSize = 50.0f;
+	const float iconSpace = 10.0f;
+	const float numberSize = 24.0f;
+
+	float x = screenW - baseX - gaugeW;
+	float y = baseY;
+
+	// ===== ラベル =====
+	DrawNumber(
+		rc,
+		x,
+		y - 28.0f,
+		isBossBattle ? "BOSS" : "MINI",
+		24.0f
+	);
+
+	// ===== HP =====
+	float hpRate = enemyHP / maxEnemyHP;
+	hpRate = std::clamp(hpRate, 0.0f, 1.0f);
+
+	hpFrameSprite->Render(
+		rc,
+		x,
+		y,
+		0,
+		gaugeW,
+		gaugeH,
+		0,
+		1, 1, 1, 1
+	);
+
+	hpBarSprite->Render(
+		rc,
+		x,
+		y,
+		0,
+		gaugeW * hpRate,
+		gaugeH,
+		0,
+		1, 0.3f, 0.3f, 1
+	);
+
+	// ===== ステータス =====
+	float iconX = x;
+	float iconY = y + gaugeH + 16.0f;
+
+	// 攻撃
+	attackIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		std::to_string((int)enemyAttack),
+		numberSize
+	);
+
+	// 防御
+	iconY += iconSize + iconSpace;
+	defenseIconSprite->Render(
+		rc,
+		iconX,
+		iconY,
+		0,
+		iconSize,
+		iconSize,
+		0,
+		1, 1, 1, 1
+	);
+	DrawNumber(
+		rc,
+		iconX + iconSize + 8.0f,
+		iconY,
+		std::to_string((int)enemyDefense),
+		numberSize
+	);
 }
 
 	
@@ -775,6 +956,20 @@ void Player::DrawDebugGUI()
 	ImGui::End();
 }
 
+void Player::StartMiniBossBattle()
+{
+	isInBattle = true;
+	isBossBattle = false;
+	isMiniBossBattle = true;
+
+	maxEnemyHP = 75.0f + currentAreaIndex * 10.0f;
+	enemyHP = maxEnemyHP;
+
+	enemyAttack = 10.0f + currentAreaIndex * 1.0f;
+	enemyDefense = 6.0f + currentAreaIndex * 1.0f;
+}
+
+
 // スティック入力値から移動ベクトルを取得
 DirectX::XMFLOAT3 Player::GetMoveVec() const
 {
@@ -830,7 +1025,7 @@ void Player::InputMove(float elapsedTime)
 	// 進行ベクトル取得
 	DirectX::XMFLOAT3 moveVec = GetMoveVec();
 
-	Player::position.z += 0.05f;
+	Player::position.z += 0.1f;
 
 	//if (Player::position.z >= 50.0f)
 	//{
@@ -930,14 +1125,12 @@ void Player::CollisionProjectilesVsEnemies()
 
 						enemy->AddImpulse(impulse);
 					}
-					// ヒットエフェクト再生
-					{
-						DirectX::XMFLOAT3 e = enemy->GetPosition();
-						e.y += enemy->GetHeight() * 0.5f;
-						hitEffect->Play(e);
-					}
-					// ヒットSE再生
-					hitSE->Play(false);
+
+
+					
+
+
+
 
 					// 弾丸破棄
 					projectile->Destroy();
@@ -1067,11 +1260,11 @@ void Player::ApplyAreaGrowth(AreaType area)
 	switch (area)
 	{
 	case AreaType::AttackGrow:
-		status.attack += 3.0f * growthMultiplier;
+		status.attack += 4.0f * growthMultiplier;
 		break;
 
 	case AreaType::DefenseGrow:
-		status.defense += 2.0f * growthMultiplier;
+		status.defense += 3.0f * growthMultiplier;
 		break;
 
 	case AreaType::CritRateGrow:
@@ -1084,7 +1277,9 @@ void Player::ApplyAreaGrowth(AreaType area)
 		status.critDamage += 0.25f * growthMultiplier;
 		break;
 
-	
+	case AreaType::MiniBoss:
+		StartMiniBossBattle();
+		break;
 	
 
 
@@ -1127,30 +1322,23 @@ void Player::BeginAreaChoice()
 	showStageImage = false; // 最初は非表示
 }
 
-
-
-void Player::StartMiniBossBattle()
-{
-	isInBattle = true;
-	isBossBattle = false;
-
-	enemyHP = 50.0f + currentAreaIndex * 10.0f;
-	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
-	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
-}
-
-
 void Player::StartBossBattle()
 {
 	isInBattle = true;
 	isBossBattle = true;
+	isMiniBossBattle = false;
 
-	enemyHP = 500.0f;
-	enemyAttack = 25.0f;
-	enemyDefense = 15.0f;
+	maxEnemyHP = BOSS_HP;
+	enemyHP = maxEnemyHP;
 
-	EnemyManager::Instance().SpawnBossVisual();
+	enemyAttack = 40.0f;
+	enemyDefense = 25.0f;
 }
+
+
+
+
+
 
 
 void Player::UpdateAutoBattle(float elapsedTime)
@@ -1163,7 +1351,17 @@ void Player::UpdateAutoBattle(float elapsedTime)
 
 	// ===== プレイヤー攻撃 =====
 	float damage = status.attack - enemyDefense;
-	if (damage < 1.0f) damage = 1.0f;
+	/*if (damage < 1.0f) damage = 1.0f;*/
+
+	// ヒットSE再生
+	/*hitSE->Play(false);*/
+	// ヒットエフェクト再生
+	{
+		DirectX::XMFLOAT3 e = Player::position;
+		e.y += 0.5;
+		hitEffect->Play(e);
+	}
+
 
 	// クリティカル
 	if ((rand() / (float)RAND_MAX) < status.critRate)
@@ -1179,7 +1377,7 @@ void Player::UpdateAutoBattle(float elapsedTime)
 
 	// ===== 敵の攻撃 =====
 	float enemyDamage = enemyAttack - status.defense;
-	if (enemyDamage < 1.0f) enemyDamage = 1.0f;
+	/*if (enemyDamage < 1.0f) enemyDamage = 1.0f;*/
 
 	status.hp -= enemyDamage;
 	if (status.hp < 0.0f)
@@ -1197,8 +1395,8 @@ void Player::OnEnemyDefeated()
 	if (!isBossBattle)
 	{
 		// 中ボス報酬（全部上がる）
-		status.attack += 5.0f;
-		status.defense += 5.0f;
+		status.attack += 10.0f;
+		status.defense += 10.0f;
 		status.critRate += 0.05f;
 		status.critDamage += 0.5f;
 		status.hp += 20.0f;

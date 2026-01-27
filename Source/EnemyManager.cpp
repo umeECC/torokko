@@ -1,7 +1,9 @@
 #include "EnemyManager.h"
 #include "Collision.h"
 #include "BossEnemy.h"
+
 #include "Player.h"   // š •K{
+
 // XVˆ—
 void EnemyManager::Update(float elapsedTime)
 {
@@ -10,7 +12,7 @@ void EnemyManager::Update(float elapsedTime)
 
 	for (Enemy* enemy : enemies)
 	{
-		enemy->Update(elapsedTime);
+		//enemy->Update(elapsedTime);
 	}
 
 	// ”jŠüˆ—
@@ -34,7 +36,6 @@ void EnemyManager::Update(float elapsedTime)
 	// “G“¯m‚ÌÕ“Ëˆ—
 	CollisionEnemyVsEnemies();
 }
-
 
 
 

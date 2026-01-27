@@ -1,7 +1,6 @@
 #pragma once
 #include "Enemy.h"
-#pragma once
-#include "Enemy.h"
+
 
 class BossEnemy : public Enemy
 {
@@ -17,6 +16,9 @@ public:
     bool bossSpawned = false;     // ¶¬Ï‚İ‚©
     bool isBossBattle = false;   // ƒ{ƒXí’†‚©
     bool bossDefeated = false;   // Œ‚”jÏ‚İ‚©
+
+
+  
 
     void Update(float elapsedTime) override;
     void Render(const RenderContext& rc, ModelRenderer* renderer) override;

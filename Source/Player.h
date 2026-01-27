@@ -194,18 +194,21 @@ private:
 
 	float areaDecisionZ = 0.0f;         // このZを超えたら確定
 
-
+	void DrawEnemyStatus(const RenderContext& rc);
 
 	// ===== バトル管理 =====
 	bool isInBattle = false;     // 今戦闘中？
 	bool isBossBattle = false;  // ボス戦か？
+	bool isMiniBossBattle = false;
 
 	float battleTimer = 0.0f;   // 自動戦闘用タイマー
 
 	// 敵ステータス
 	float enemyHP = 0.0f;
+	float maxEnemyHP = 0.0f;
 	float enemyAttack = 0.0f;
 	float enemyDefense = 0.0f;
+	static constexpr float BOSS_HP = 750.0f;
 
 	Sprite* hpFrameSprite = nullptr;   // 体力ゲージ（枠）
 	Sprite* hpBarSprite = nullptr;   // 体力（中身）
@@ -227,4 +230,10 @@ private:
 		const std::string& text,
 		float size
 	);
+
+	void DrawBossStatus(const RenderContext& rc);
+
+	Sprite* bossHpFrameSprite = nullptr;
+	Sprite* bossHpBarSprite = nullptr;
+
 };
