@@ -210,7 +210,13 @@ void Player::Update(float elapsedTime)
 		}
 	}
 
+	static bool bossSpawned = false;
 
+	if (!bossSpawned && position.z > 840.0f)
+	{
+		EnemyManager::Instance().SpawnBossVisual();
+		bossSpawned = true;
+	}
 
 
 	// ★ ステージ画像の表示制御
@@ -415,6 +421,17 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 			);
 		}
 	}
+}
+bool Player::IsInBossRoom() const
+{
+	if (!stage) return false;
+
+	int areaIndex = stage->GetCurrentAreaIndex(position);
+
+	// ボスエリア候補を可視化
+	//("[BossCheck] Z=%.1f Area=%d\n", position.z, areaIndex);
+
+	return areaIndex >= 20; // ← 仮
 }
 
 	
