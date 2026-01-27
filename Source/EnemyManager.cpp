@@ -8,7 +8,7 @@ void EnemyManager::Update(float elapsedTime)
 {
 	for (Enemy* enemy : enemies)
 	{
-		enemy->Update(elapsedTime);
+		//enemy->Update(elapsedTime);
 	}
 
 	// ”jŠüˆ—

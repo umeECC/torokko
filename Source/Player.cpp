@@ -62,8 +62,8 @@ void Player::SelectRandomTrolleyImages()
 }
 
 
-static const float AREA_LENGTH = 40.0f;
-static const int AREA_COUNT = 7;
+static const float AREA_LENGTH = 50.0f;
+static const int AREA_COUNT = 0;
 
 
 
@@ -303,7 +303,9 @@ void Player::Update(float elapsedTime)
 		stageImageShown = false;
 		
 
-		if (areaIndex == -1)
+
+		
+		if (areaIndex == 21)
 		{
 			StartBossBattle();
 		}
@@ -943,11 +945,11 @@ void Player::StartMiniBossBattle()
 	isBossBattle = false;
 	isMiniBossBattle = true;
 
-	maxEnemyHP = 50.0f + currentAreaIndex * 10.0f;
+	maxEnemyHP = 75.0f + currentAreaIndex * 10.0f;
 	enemyHP = maxEnemyHP;
 
-	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
-	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
+	enemyAttack = 10.0f + currentAreaIndex * 1.0f;
+	enemyDefense = 6.0f + currentAreaIndex * 1.0f;
 }
 
 
@@ -1241,11 +1243,11 @@ void Player::ApplyAreaGrowth(AreaType area)
 	switch (area)
 	{
 	case AreaType::AttackGrow:
-		status.attack += 3.0f * growthMultiplier;
+		status.attack += 4.0f * growthMultiplier;
 		break;
 
 	case AreaType::DefenseGrow:
-		status.defense += 2.0f * growthMultiplier;
+		status.defense += 3.0f * growthMultiplier;
 		break;
 
 	case AreaType::CritRateGrow:
@@ -1312,8 +1314,8 @@ void Player::StartBossBattle()
 	maxEnemyHP = BOSS_HP;
 	enemyHP = maxEnemyHP;
 
-	enemyAttack = 30.0f;
-	enemyDefense = 15.0f;
+	enemyAttack = 40.0f;
+	enemyDefense = 25.0f;
 }
 
 
@@ -1335,7 +1337,7 @@ void Player::UpdateAutoBattle(float elapsedTime)
 	/*if (damage < 1.0f) damage = 1.0f;*/
 
 	// ヒットSE再生
-	hitSE->Play(false);
+	/*hitSE->Play(false);*/
 	// ヒットエフェクト再生
 	{
 		DirectX::XMFLOAT3 e = Player::position;
@@ -1376,8 +1378,8 @@ void Player::OnEnemyDefeated()
 	if (!isBossBattle)
 	{
 		// 中ボス報酬（全部上がる）
-		status.attack += 5.0f;
-		status.defense += 5.0f;
+		status.attack += 10.0f;
+		status.defense += 10.0f;
 		status.critRate += 0.05f;
 		status.critDamage += 0.5f;
 		status.hp += 20.0f;
