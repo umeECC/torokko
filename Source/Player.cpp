@@ -1006,7 +1006,7 @@ void Player::InputMove(float elapsedTime)
 	// 進行ベクトル取得
 	DirectX::XMFLOAT3 moveVec = GetMoveVec();
 
-	Player::position.z += 0.05f;
+	Player::position.z += 0.1f;
 
 	//if (Player::position.z >= 50.0f)
 	//{
@@ -1106,14 +1106,12 @@ void Player::CollisionProjectilesVsEnemies()
 
 						enemy->AddImpulse(impulse);
 					}
-					// ヒットエフェクト再生
-					{
-						DirectX::XMFLOAT3 e = enemy->GetPosition();
-						e.y += enemy->GetHeight() * 0.5f;
-						hitEffect->Play(e);
-					}
-					// ヒットSE再生
-					hitSE->Play(false);
+
+
+					
+
+
+
 
 					// 弾丸破棄
 					projectile->Destroy();
@@ -1334,7 +1332,17 @@ void Player::UpdateAutoBattle(float elapsedTime)
 
 	// ===== プレイヤー攻撃 =====
 	float damage = status.attack - enemyDefense;
-	if (damage < 1.0f) damage = 1.0f;
+	/*if (damage < 1.0f) damage = 1.0f;*/
+
+	// ヒットSE再生
+	hitSE->Play(false);
+	// ヒットエフェクト再生
+	{
+		DirectX::XMFLOAT3 e = Player::position;
+		e.y += 0.5;
+		hitEffect->Play(e);
+	}
+
 
 	// クリティカル
 	if ((rand() / (float)RAND_MAX) < status.critRate)
@@ -1350,7 +1358,7 @@ void Player::UpdateAutoBattle(float elapsedTime)
 
 	// ===== 敵の攻撃 =====
 	float enemyDamage = enemyAttack - status.defense;
-	if (enemyDamage < 1.0f) enemyDamage = 1.0f;
+	/*if (enemyDamage < 1.0f) enemyDamage = 1.0f;*/
 
 	status.hp -= enemyDamage;
 	if (status.hp < 0.0f)
