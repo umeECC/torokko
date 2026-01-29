@@ -1,45 +1,35 @@
 #include "BossEnemy.h"
 #include <d3d12.h>
 #include <System/Graphics.h>
-
 BossEnemy::BossEnemy()
 {
-    // ★ 必須：モデル生成
-    Model* bossModel = new Model("Data/Model/Mr.Incredible/PAN.mdl");
-    SetModel(bossModel);
+    SetModel(new Model("Data/Model/Mr.Incredible/PAN.mdl"));
 
-    SetBoss(true);
-
+    position = { 0.0f, 0.0f, 0.0f }; // ★ 必須
     scale = { 1.0f, 1.0f, 1.0f };
+    angle = { 0.0f, DirectX::XM_PI, 0.0f };
+
+    radius = 3.0f;
+    height = 6.0f;
 }
+
 
 BossEnemy::~BossEnemy()
 {
-    delete GetModel();
-}
 
+}
 void BossEnemy::Update(float elapsedTime)
 {
     UpdateTransform();
     GetModel()->UpdateTransform();
 }
+
+
 void BossEnemy::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
-    Model* model = GetModel();
-    if (!model) return;
+    renderer->Render(rc, transform, GetModel(), ShaderId::Lambert);
 
-    DirectX::XMFLOAT3 originalPos = position;
-
-    // ★ モデル専用オフセット
-    position.x += modelOffset.x;
-    position.y += modelOffset.y;
-    position.z += modelOffset.z;
-
-    UpdateTransform();
-    model->UpdateTransform();
-
-    renderer->Render(rc, transform, model, ShaderId::Lambert);
-
-    position = originalPos;
+    // ★ 原点確認（赤玉）
+    ShapeRenderer* sr = Graphics::Instance().GetShapeRenderer();
+    sr->RenderSphere(rc, position, 3.0f, {1,0,0,1});
 }
-

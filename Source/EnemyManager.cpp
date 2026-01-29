@@ -1,14 +1,18 @@
 #include "EnemyManager.h"
 #include "Collision.h"
 #include "BossEnemy.h"
-#include <Player.h>
+
+#include "Player.h"   // ★ 必須
 
 // 更新処理
 void EnemyManager::Update(float elapsedTime)
 {
+	// EnemyManager::Update(int count = (int)enemies.size(); // ← ★この行
+
+
 	for (Enemy* enemy : enemies)
 	{
-		//enemy->Update(elapsedTime);
+		enemy->Update(elapsedTime);
 	}
 
 	// 破棄処理
@@ -38,36 +42,36 @@ void EnemyManager::Update(float elapsedTime)
 
 void EnemyManager::SpawnBossVisual()
 {
-	Clear(); // 既存の敵を消す（中ボスなど）
-
 	BossEnemy* boss = new BossEnemy();
 
-	// プレイヤー前方に出す
+	// ★ プレイヤーの前に出す
 	DirectX::XMFLOAT3 p = Player::Instance().GetPosition();
-	boss->SetPosition({ p.x, p.y, p.z + 30.0f });
+	boss->SetPosition({ p.x, p.y + 0.0f, p.z + 0.0f });
 
-	// ★ ここが超重要
-	Register(boss);
+	enemies.push_back(boss);
 }
 
 void EnemyManager::ClearEnemies()
 {
 	for (Enemy* e : enemies)
 	{
-		delete e->GetModel(); // モデル解放
-		delete e;
+		delete e; // ★ Model は触らない
 	}
 	enemies.clear();
 }
 
+
 // 描画処理
 void EnemyManager::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
+	printf("Enemy count = %d\n", (int)enemies.size());
+
 	for (Enemy* enemy : enemies)
 	{
 		enemy->Render(rc, renderer);
 	}
 }
+
 
 // エネミー登録
 void EnemyManager::Register(Enemy* enemy)

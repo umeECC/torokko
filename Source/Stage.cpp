@@ -36,3 +36,14 @@ void Stage::Render(const RenderContext& rc, ModelRenderer* renderer)
 	renderer->Render(rc, transform, model, ShaderId::Lambert);
 }
 
+int Stage::GetCurrentAreaIndex(const DirectX::XMFLOAT3& playerPos) const
+{
+	// ボス部屋（Z方向の奥）
+	if (playerPos.z >= 840.0f)
+	{
+		return 21; // ボス部屋
+	}
+
+	// 通常エリア
+	return 0;
+}

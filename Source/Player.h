@@ -92,7 +92,9 @@ public:
 	void BeginAreaChoice();
 	float selectedScale = 1.1f;
 	float unselectedScale = 0.95f;
-	
+public:
+	bool IsInBossRoom() const;
+
 	float selectedColor = 1.3f;  // –¾‚é‚­
 	float unselectedColor = 0.6f;  // ˆÃ‚­
 

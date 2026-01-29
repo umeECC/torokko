@@ -5,6 +5,7 @@
 #include "EnemySlime.h"
 #include "Player.h"
 #include "EffectManager.h"
+#include <BossEnemy.h>
 
 // 初期化
 void SceneGame::Initialize()
@@ -83,22 +84,24 @@ void SceneGame::Finalize()
 // 更新処理
 void SceneGame::Update(float elapsedTime)
 {
-	// カメラコントローラー更新処理
+	// カメラ更新
 	DirectX::XMFLOAT3 target = Player::Instance().GetPosition();
 	target.y += 0.5f;
 	cameraController->SetTarget(target);
 	cameraController->Update(elapsedTime);
 
-	// ステージ更新処理
 	stage->Update(elapsedTime);
 
-	// プレイヤー更新処理
+	Player& player = Player::Instance();
+
+	// ★ 強制Z判定（これが基準）
+	if (!bossSpawned && player.GetPosition().z > 840.0f)
+	{
+		SpawnBoss();
+	}
+
 	Player::Instance().Update(elapsedTime);
-
-	// エネミー更新処理
 	EnemyManager::Instance().Update(elapsedTime);
-
-	// エフェクト更新処理
 	EffectManager::Instance().Update(elapsedTime);
 }
 
@@ -156,5 +159,18 @@ void SceneGame::DrawGUI()
 {
 	// プレイヤーデバッグ描画
 	Player::Instance().DrawDebugGUI();
+}
+
+void SceneGame::SpawnBoss()
+{
+	if (bossSpawned) return;
+
+	BossEnemy* boss = new BossEnemy();
+
+	boss->SetPosition({ 0.0f, 0.0f, 845.0f }); // ★ 固定
+
+	EnemyManager::Instance().Register(boss);
+
+	bossSpawned = true;
 }
 
