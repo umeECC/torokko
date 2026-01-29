@@ -26,7 +26,7 @@ public:
 
 	// •`‰æˆ—
 	void Render(const RenderContext& rc, ModelRenderer* renderer);
-
+	bool bossSpawned = false;
 	// ƒGƒlƒ~[“o˜^
 	void Register(Enemy* enemy);
 

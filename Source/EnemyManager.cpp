@@ -1,18 +1,17 @@
 #include "EnemyManager.h"
 #include "Collision.h"
 #include "BossEnemy.h"
-
+#include <Windows.h>
 #include "Player.h"   // ★ 必須
 
 // 更新処理
 void EnemyManager::Update(float elapsedTime)
 {
 	// EnemyManager::Update(int count = (int)enemies.size(); // ← ★この行
-
-
+	int count = (int)enemies.size();
 	for (Enemy* enemy : enemies)
 	{
-		//enemy->Update(elapsedTime);
+		enemy->Update(elapsedTime);
 	}
 
 	// 破棄処理
@@ -36,21 +35,19 @@ void EnemyManager::Update(float elapsedTime)
 	// 敵同士の衝突処理
 	CollisionEnemyVsEnemies();
 }
-
-
-
-
 void EnemyManager::SpawnBossVisual()
 {
-	BossEnemy* boss = new BossEnemy();
 
-	// ★ プレイヤーの前に出す
-	DirectX::XMFLOAT3 p = Player::Instance().GetPosition();
-	boss->SetPosition({ p.x, p.y + 50.0f, p.z + 30.0f });
+	BossEnemy* boss = new BossEnemy();
+	boss->SetPosition({
+		0.0f,
+		boss->GetHeight() * 0.5f,
+		900.0f
+		});
+
 
 	enemies.push_back(boss);
 }
-
 void EnemyManager::ClearEnemies()
 {
 	for (Enemy* e : enemies)
@@ -64,7 +61,12 @@ void EnemyManager::ClearEnemies()
 // 描画処理
 void EnemyManager::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
-	printf("Enemy count = %d\n", (int)enemies.size());
+
+	char buf[64];
+	sprintf_s(buf, "Enemy count = %d\n", (int)enemies.size());
+	OutputDebugStringA(buf);
+	OutputDebugStringA("\n");
+
 
 	for (Enemy* enemy : enemies)
 	{
@@ -97,10 +99,21 @@ void EnemyManager::Clear()
 }
 
 // デバッグプリミティブ描画
-void EnemyManager::RenderDebugPrimitive(const RenderContext& rc, ShapeRenderer* renderer)
+void EnemyManager::RenderDebugPrimitive(
+	const RenderContext& rc,
+	ShapeRenderer* renderer)
 {
 	for (Enemy* enemy : enemies)
 	{
+		// ★ 赤い球（原点確認用）
+		renderer->RenderSphere(
+			rc,
+			enemy->GetPosition(),
+			3.0f,
+			{ 1, 0, 0, 1 }
+		);
+
+		// 既存のデバッグ描画（あれば）
 		enemy->RenderDebugPrimitive(rc, renderer);
 	}
 }
