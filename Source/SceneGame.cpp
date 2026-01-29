@@ -19,6 +19,10 @@ void SceneGame::Initialize()
 	// ★ ステージをプレイヤーにセット
 	Player::Instance().SetStage(stage);
 
+	audioManager = &AudioManager::Instance();
+
+	audioManager->PlayBGM("stage",true);
+
 	// カメラ初期設定
 	Graphics& graphics = Graphics::Instance();
 	Camera& camera = Camera::Instance();
@@ -67,6 +71,10 @@ void SceneGame::Finalize()
 		delete stage;
 		stage = nullptr;
 	}
+
+
+	audioManager->StopBGM();
+
 
 	// プレイヤー終了化
 	Player::Instance().Finalize();

@@ -945,13 +945,26 @@ void Player::StartMiniBossBattle()
 	isBossBattle = false;
 	isMiniBossBattle = true;
 
-	maxEnemyHP = 75.0f + currentAreaIndex * 10.0f;
+	maxEnemyHP = 50.0f + currentAreaIndex * 10.0f;
 	enemyHP = maxEnemyHP;
 
-	enemyAttack = 10.0f + currentAreaIndex * 1.0f;
-	enemyDefense = 6.0f + currentAreaIndex * 1.0f;
+	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
+	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
 }
 
+
+void Player::StartBossBattle()
+{
+	isInBattle = true;
+	isBossBattle = true;
+	isMiniBossBattle = false;
+
+	maxEnemyHP = BOSS_HP;
+	enemyHP = maxEnemyHP;
+
+	enemyAttack = 30.0f;
+	enemyDefense = 15.0f;
+}
 
 // スティック入力値から移動ベクトルを取得
 DirectX::XMFLOAT3 Player::GetMoveVec() const
@@ -1243,11 +1256,11 @@ void Player::ApplyAreaGrowth(AreaType area)
 	switch (area)
 	{
 	case AreaType::AttackGrow:
-		status.attack += 4.0f * growthMultiplier;
+		status.attack += 3.0f * growthMultiplier;
 		break;
 
 	case AreaType::DefenseGrow:
-		status.defense += 3.0f * growthMultiplier;
+		status.defense += 2.0f * growthMultiplier;
 		break;
 
 	case AreaType::CritRateGrow:
@@ -1257,7 +1270,7 @@ void Player::ApplyAreaGrowth(AreaType area)
 		break;
 
 	case AreaType::CritDamageGrow:
-		status.critDamage += 0.25f * growthMultiplier;
+		status.critDamage += 0.2f * growthMultiplier;
 		break;
 
 	case AreaType::MiniBoss:
@@ -1305,18 +1318,6 @@ void Player::BeginAreaChoice()
 	showStageImage = false; // 最初は非表示
 }
 
-void Player::StartBossBattle()
-{
-	isInBattle = true;
-	isBossBattle = true;
-	isMiniBossBattle = false;
-
-	maxEnemyHP = BOSS_HP;
-	enemyHP = maxEnemyHP;
-
-	enemyAttack = 40.0f;
-	enemyDefense = 25.0f;
-}
 
 
 
@@ -1334,10 +1335,10 @@ void Player::UpdateAutoBattle(float elapsedTime)
 
 	// ===== プレイヤー攻撃 =====
 	float damage = status.attack - enemyDefense;
-	/*if (damage < 1.0f) damage = 1.0f;*/
+	if (damage < 1.0f) damage = 1.0f;
 
 	// ヒットSE再生
-	/*hitSE->Play(false);*/
+	hitSE->Play(false);
 	// ヒットエフェクト再生
 	{
 		DirectX::XMFLOAT3 e = Player::position;
@@ -1360,7 +1361,7 @@ void Player::UpdateAutoBattle(float elapsedTime)
 
 	// ===== 敵の攻撃 =====
 	float enemyDamage = enemyAttack - status.defense;
-	/*if (enemyDamage < 1.0f) enemyDamage = 1.0f;*/
+	if (enemyDamage < 1.0f) enemyDamage = 1.0f;
 
 	status.hp -= enemyDamage;
 	if (status.hp < 0.0f)
@@ -1378,11 +1379,15 @@ void Player::OnEnemyDefeated()
 	if (!isBossBattle)
 	{
 		// 中ボス報酬（全部上がる）
-		status.attack += 10.0f;
-		status.defense += 10.0f;
+		status.attack += 5.0f;
+		status.defense += 5.0f;
 		status.critRate += 0.05f;
 		status.critDamage += 0.5f;
 		status.hp += 20.0f;
+		if (status.hp > 100.0f)
+		{
+			status.hp == 100.0f;
+		}
 	}
 	else
 	{

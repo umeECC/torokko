@@ -35,6 +35,9 @@ Framework::Framework(HWND hWnd)
 	// オーディオ初期化
 	Audio::Instance().Initialize();
 
+	// ★これを追加！！！
+	AudioManager::Instance().Initialize();
+
 	// インプット初期化
 	Input::Instance().Initialize(hWnd);
 
@@ -120,6 +123,7 @@ void Framework::Update(float elapsedTime)
 
 	// シーン更新処理
 	SceneManager::Instance().Update(elapsedTime);
+	
 }
 
 // 描画処理

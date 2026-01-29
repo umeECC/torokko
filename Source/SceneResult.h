@@ -3,6 +3,7 @@
 #pragma once
 #include "Scene.h"
 #include "System/Sprite.h"
+#include "System/AudioManager.h"
 class SceneResult : public Scene
 {
 public:
@@ -12,7 +13,8 @@ public:
     void Render() override;
     void DrawGUI() override;
 
-    Sprite* sprite = nullptr;
+  
 private:
-    
+    Sprite* sprite = nullptr;
+    AudioManager* audioManager = nullptr;
 };

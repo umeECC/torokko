@@ -1,7 +1,7 @@
 #pragma once
 #include "Scene.h"
 #include "System/Sprite.h"
-
+#include "System/AudioManager.h"
 class SceneOver : public Scene
 {
 public:
@@ -13,5 +13,6 @@ public:
 
 private:
     Sprite* sprite = nullptr;
+    AudioManager* audioManager = nullptr;
 };
 

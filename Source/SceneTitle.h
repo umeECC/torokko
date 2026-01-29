@@ -2,6 +2,7 @@
 
 #include "System/Sprite.h"
 #include "Scene.h"
+#include "System/AudioManager.h"
 
 // タイトルシーン
 class SceneTitle : public Scene
@@ -27,4 +28,5 @@ public:
 
 private:
 	Sprite* sprite = nullptr;
+	AudioManager* audioManager = nullptr;
 };
