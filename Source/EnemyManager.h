@@ -21,6 +21,8 @@ public:
 	void SpawnBossVisual();
 	void ClearEnemies();
 
+	void PlayerVsEnemies();
+
 	// XVˆ—
 	void Update(float elapsedTime);
 

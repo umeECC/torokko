@@ -38,7 +38,7 @@ void Stage::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 int Stage::GetCurrentAreaIndex(const DirectX::XMFLOAT3& playerPos) const
 {
-	// ボス部屋（Z方向の奥）
+	// ボス部屋（Z方向の奥）84
 	if (playerPos.z >= 840.0f)
 	{
 		return 21; // ボス部屋

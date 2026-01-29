@@ -3,6 +3,54 @@
 #include "BossEnemy.h"
 #include <Windows.h>
 #include "Player.h"   // ★ 必須
+void EnemyManager::PlayerVsEnemies()
+{
+	Player& player = Player::Instance();
+
+	// ★ ボス戦中は押し返さない
+	if (player.IsBossBattle())
+		return;
+
+	if (player.IsKnockback())
+		return;
+
+	DirectX::XMFLOAT3 playerPos = player.GetPosition();
+
+	for (Enemy* enemy : enemies)
+	{
+		DirectX::XMFLOAT3 outPos;
+
+		if (Collision::IntersectCylinderVsCylinder(
+			playerPos,
+			player.GetRadius(),
+			player.GetHeight(),
+			enemy->GetPosition(),
+			enemy->GetRadius(),
+			enemy->GetHeight(),
+			outPos))
+		{
+			// ノックバック処理（通常敵のみ）
+			DirectX::XMFLOAT3 dir = {
+				playerPos.x - enemy->GetPosition().x,
+				0.0f,
+				playerPos.z - enemy->GetPosition().z
+			};
+
+			float len = sqrtf(dir.x * dir.x + dir.z * dir.z);
+			if (len > 0.0f)
+			{
+				dir.x /= len;
+				dir.z /= len;
+			}
+
+			player.AddImpulse({ dir.x * 15.0f, 8.0f, dir.z * 15.0f });
+			player.StartKnockback(0.25f);
+			return;
+		}
+	}
+}
+
+
 
 // 更新処理
 void EnemyManager::Update(float elapsedTime)
@@ -13,6 +61,7 @@ void EnemyManager::Update(float elapsedTime)
 	{
 		enemy->Update(elapsedTime);
 	}
+	PlayerVsEnemies();
 
 	// 破棄処理
 	// ※enemiesの範囲for文中でerase()すると不具合が発生してしまうため、
@@ -29,6 +78,7 @@ void EnemyManager::Update(float elapsedTime)
 		// 削除
 		delete enemy;
 	}
+
 	// 破棄リストをクリア
 	removes.clear();
 
@@ -37,17 +87,19 @@ void EnemyManager::Update(float elapsedTime)
 }
 void EnemyManager::SpawnBossVisual()
 {
-
 	BossEnemy* boss = new BossEnemy();
-	boss->SetPosition({
-		0.0f,
-		boss->GetHeight() * 0.5f,
-		900.0f
-		});
 
+	DirectX::XMFLOAT3 p = Player::Instance().GetPosition();
+	boss->SetPosition({
+		p.x,
+		p.y,
+		p.z + 10.0f   // ← 円の中心付近
+		});
 
 	enemies.push_back(boss);
 }
+
+
 void EnemyManager::ClearEnemies()
 {
 	for (Enemy* e : enemies)

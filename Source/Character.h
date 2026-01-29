@@ -49,6 +49,7 @@ public:
 	// ÕŒ‚‚ğ—^‚¦‚é
 	void AddImpulse(const DirectX::XMFLOAT3& impulse);
 
+
 protected:
 	// ˆÚ“®ˆ—
 	void Move(float elapsedTime, float vx, float vz, float speed);

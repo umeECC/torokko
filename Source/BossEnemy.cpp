@@ -5,31 +5,50 @@ BossEnemy::BossEnemy()
 {
     SetModel(new Model("Data/Model/Mr.Incredible/PAN.mdl"));
 
-    position = { 0.0f, 0.0f, 0.0f }; // ★ 必須
-    scale = { 1.0f, 1.0f, 1.0f };
-    angle = { 0.0f, DirectX::XM_PI, 0.0f };
+    scale = { 3.5,3.5,3.5 };
+    angle = { 0, DirectX::XM_PI, 0 };
 
-    radius = 3.0f;
-    height = 6.0f;
+    radius = 4.0f;
+    height = 8.0f;
+	SetBoss(true);
+    // ★ スクショ基準の初期補正値
+    modelOffset = { 5.5f, 0.0f, 0.0f };
+
 }
-
 
 BossEnemy::~BossEnemy()
 {
 
+}
+void BossEnemy::AddImpulse(const DirectX::XMFLOAT3& impulse)
+{
+    OutputDebugStringA("Boss Hit\n");
+
+    Enemy::AddImpulse(impulse); // ← 必須
 }
 void BossEnemy::Update(float elapsedTime)
 {
     UpdateTransform();
     GetModel()->UpdateTransform();
 }
-
-
 void BossEnemy::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
-    renderer->Render(rc, transform, GetModel(), ShaderId::Lambert);
+    using namespace DirectX;
 
-    // ★ 原点確認（赤玉）
-    ShapeRenderer* sr = Graphics::Instance().GetShapeRenderer();
-    sr->RenderSphere(rc, position, 3.0f, {1,0,0,1});
+    // キャラクターの transform
+    XMMATRIX world = XMLoadFloat4x4(&transform);
+
+    // モデル原点補正
+    XMMATRIX offset = XMMatrixTranslation(
+        modelOffset.x,
+        modelOffset.y,
+        modelOffset.z
+    );
+
+    XMMATRIX finalWorld = offset * world;
+
+    XMFLOAT4X4 finalTransform;
+    XMStoreFloat4x4(&finalTransform, finalWorld);
+
+    renderer->Render(rc, finalTransform, GetModel(), ShaderId::Lambert);
 }

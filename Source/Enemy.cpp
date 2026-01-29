@@ -15,3 +15,9 @@ void Enemy::SetBoss(bool boss)
 {
 	isBoss = boss;
 }
+void Enemy::AddImpulse(const DirectX::XMFLOAT3& impulse)
+{
+	velocity.x += impulse.x;
+	velocity.y += impulse.y;
+	velocity.z += impulse.z;
+}

@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Stage.h"
 #include "CameraController.h"
 #include "Scene.h"

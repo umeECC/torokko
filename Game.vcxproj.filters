@@ -177,6 +177,8 @@
     <ClInclude Include="Source\BossEnemy.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="Source\SceneOver.h" />
+    <ClInclude Include="Source\SceneResult.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -315,6 +317,12 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\BossEnemy.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SceneOver.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SceneResult.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

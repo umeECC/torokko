@@ -207,11 +207,20 @@ void Player::Update(float elapsedTime)
 
 	if (isInBattle)
 	{
+		position.z += 0.1f;
 		UpdateAutoBattle(elapsedTime);
 		return;
 	}
 	
-	
+	if (isKnockback)
+	{
+		knockbackTimer -= elapsedTime;
+		if (knockbackTimer <= 0.0f)
+		{
+			isKnockback = false;
+		}
+	}
+
 	if (stage)
 	{
 		if (position.z >= stage->GetMaxZ() && !showTrolleyUI && !trolleyChosen)
@@ -223,10 +232,15 @@ void Player::Update(float elapsedTime)
 
 	static bool bossSpawned = false;
 
-	if (!bossSpawned && position.z > 840.0f)
+	if (!bossSpawned && position.z > 845.0f)
 	{
 		EnemyManager::Instance().SpawnBossVisual();
+		bossSpawned = true;
 	}
+	char buf[64];
+	sprintf_s(buf, "Player Z = %.1f\n", position.z);
+	OutputDebugStringA(buf);
+
 
 
 	// ★ ステージ画像の表示制御
@@ -310,10 +324,11 @@ void Player::Update(float elapsedTime)
 
 
 		
-		if (areaIndex == 21)
+		if (areaIndex == 21 && position.z > 845.0f)
 		{
 			StartBossBattle();
 		}
+
 		else
 		{
 			BeginAreaChoice();
@@ -439,84 +454,6 @@ bool Player::IsInBossRoom() const
 
 	return areaIndex >= 20; // ← 仮
 }
-
-//void Player::DrawBossStatus(const RenderContext& rc)
-//{
-//	const float baseX = 20.0f;
-//	const float baseY = 20.0f;
-//
-//	const float screenW = 1280.0f;
-//
-//	// プレイヤーと同じサイズ
-//	const float gaugeW = 300.0f;
-//	const float gaugeH = 40.0f;
-//	const float iconSize = 50.0f;
-//	const float iconSpace = 10.0f;
-//	const float numberSize = 24.0f;
-//
-//	float x = screenW - baseX - gaugeW;
-//	float y = baseY;
-//
-//	// ===== HP =====
-//	const float maxBossHP = 500.0f;
-//	float hpRate = std::clamp(enemyHP / maxBossHP, 0.0f, 1.0f);
-//
-//	bossHpFrameSprite->Render(rc, x, y, 0, gaugeW, gaugeH, 0, 1, 1, 1, 1);
-//	bossHpBarSprite->Render(
-//		rc,
-//		x,
-//		y,
-//		0,
-//		gaugeW * hpRate,
-//		gaugeH,
-//		0,
-//		1, 1.0f, 1.0f, 1
-//	);
-//
-//	// ===== ステータス =====
-//	float iconX = x;
-//	float iconY = y + gaugeH + 16.0f;
-//
-//	// 攻撃（拳）
-//	attackIconSprite->Render(
-//		rc,
-//		iconX,
-//		iconY,
-//		0,
-//		iconSize,
-//		iconSize,
-//		0,
-//		1, 1, 1, 1
-//	);
-//	DrawNumber(
-//		rc,
-//		iconX + iconSize + 8.0f,
-//		iconY,
-//		std::to_string((int)enemyAttack),
-//		numberSize
-//	);
-//
-//	// 防御（盾）
-//	iconY += iconSize + iconSpace;
-//	defenseIconSprite->Render(
-//		rc,
-//		iconX,
-//		iconY,
-//		0,
-//		iconSize,
-//		iconSize,
-//		0,
-//		1, 1, 1, 1
-//	);
-//	DrawNumber(
-//		rc,
-//		iconX + iconSize + 8.0f,
-//		iconY,
-//		std::to_string((int)enemyDefense),
-//		numberSize
-//	);
-//}
-
 void Player::DrawEnemyStatus(const RenderContext& rc)
 {
 	if (!isInBattle) return;
@@ -1035,6 +972,8 @@ void Player::InputMove(float elapsedTime)
 // プレイヤーとエネミーとの衝突処理
 void Player::CollisionPlayerVsEnemies()
 {
+	OutputDebugStringA("CollisionPlayerVsEnemies called\n");
+
 	EnemyManager& enemyManager = EnemyManager::Instance();
 
 	// 全ての敵と総当たりで衝突処理
@@ -1227,6 +1166,13 @@ void Player::InputProjectile()
 	}
 }
 
+void Player::StartKnockback(float time)
+{
+	isKnockback = true;
+	knockbackTimer = time;
+}
+
+
 // 着地した時に呼ばれる
 void Player::OnLanding()
 {
@@ -1326,6 +1272,8 @@ void Player::StartBossBattle()
 	isInBattle = true;
 	isBossBattle = true;
 	isMiniBossBattle = false;
+
+
 
 	maxEnemyHP = BOSS_HP;
 	enemyHP = maxEnemyHP;

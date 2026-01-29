@@ -18,6 +18,8 @@ public:
 	Model* GetModel() const { return model; }
 	void SetModel(Model* model);
 	void SetBoss(bool boss);
+	virtual void AddImpulse(const DirectX::XMFLOAT3& impulse);
+
 	bool IsBoss() const { return isBoss; }
 	// •`‰æˆ—
 	virtual void Render(const RenderContext& rc, ModelRenderer* renderer) = 0;

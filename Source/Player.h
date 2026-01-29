@@ -75,6 +75,8 @@ public:
 
 	// 更新処理
 	void Update(float elapsedTime);
+public:
+    bool IsBossBattle() const { return isBossBattle; }
 
 	// 描画処理
 	void Render(const RenderContext& rc, ModelRenderer* renderer);
@@ -94,7 +96,7 @@ public:
 	float unselectedScale = 0.95f;
 public:
 	bool IsInBossRoom() const;
-
+	bool bossSpawned = false;
 	float selectedColor = 1.3f;  // 明るく
 	float unselectedColor = 0.6f;  // 暗く
 
@@ -109,7 +111,11 @@ public:
 	float stageImageEndZ = 0.0f;
 
 
+	bool isKnockback = false;
+	float knockbackTimer = 0.0f;
 
+	bool IsKnockback() const { return isKnockback; }
+	void StartKnockback(float time);
 	//ステータス設定
 	void ApplyAreaGrowth(AreaType area);
 private:
@@ -157,6 +163,7 @@ private:
 	void InputProjectile();
 
 
+	
 
 protected:
 	// 着地した時に呼ばれる
