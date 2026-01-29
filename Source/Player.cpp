@@ -88,6 +88,7 @@ AreaType Player::GetRandomGrowArea()
 void Player::Initialize() 
 {
 	model = new Model("Data/Model/Mr.Incredible/MineCart.mdl");
+
 	hito = new Model("Data/Model/hito/fbx/fbx file.mdl");
 	// モデルが大きいのでスケーリング
 	scale.x = scale.y = scale.z = 0.5f;
@@ -380,6 +381,74 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 	XMStoreFloat4x4(&hitoWorld, hitoM);
 
 	renderer->Render(rc, hitoWorld, hito, ShaderId::Lambert);
+	// ===== UI描画 =====
+	DrawHPGauge(rc);          // プレイヤー左上
+
+	DrawEnemyStatus(rc);      // MiniBoss / Boss 共通（右上）
+
+	// エリア選択UI
+	if (showStageImage && optionA && optionB)
+	{
+		float screenW = 1280.0f;
+		float screenH = 720.0f;
+		float baseW = 400.0f;
+		float baseH = 300.0f;
+
+		// A（左）
+		{
+			bool selected = (selectedArea == optionA->areaType);
+			float scale = selected ? 0.9f : 0.6f;
+			float color = selected ? 0.9f : 0.6f;
+
+			optionA->sprite->Render(
+				rc,
+				screenW * 0.25f - baseW * 0.5f,
+				screenH * 0.65f - baseH * 0.5f,
+				0,
+				baseW * scale,
+				baseH * scale,
+				0,
+				color, color, color, 1.0f
+			);
+		}
+
+		// B（右）
+		{
+			bool selected = (selectedArea == optionB->areaType);
+			float scale = selected ? 0.9f : 0.6f;
+			float color = selected ? 0.9f : 0.6f;
+
+			optionB->sprite->Render(
+				rc,
+				screenW * 0.85f - baseW * 0.5f,
+				screenH * 0.65f - baseH * 0.5f,
+				0,
+				baseW * scale,
+				baseH * scale,
+				0,
+				color, color, color, 1.0f
+			);
+		}
+
+		// C（3択）
+		if (areaChoiceCount == 3 && optionC)
+		{
+			bool selected = (selectedArea == optionC->areaType);
+			float scale = selected ? 0.9f : 0.6f;
+			float color = selected ? 0.9f : 0.6f;
+
+			optionC->sprite->Render(
+				rc,
+				screenW * 0.575f - baseW * 0.5f,
+				screenH * 0.3f - baseH * 0.5f,
+				0,
+				baseW * scale,
+				baseH * scale,
+				0,
+				color, color, color, 1.0f
+			);
+		}
+	}
 }
 
 

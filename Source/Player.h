@@ -5,8 +5,10 @@
 #include "Character.h"
 #include "ProjectileManager.h"
 #include "Effect.h"
-#include <Stage.h>
+//#include <Stage.h>
 #include <System/Sprite.h>
+
+class Stage;
 enum class TrolleyChoice
 {
 	None,
