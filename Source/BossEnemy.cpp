@@ -5,27 +5,31 @@ BossEnemy::BossEnemy()
 {
     SetModel(new Model("Data/Model/Mr.Incredible/PAN.mdl"));
 
+    position = { 0.0f, 0.0f, 0.0f }; // ★ 必須
+    scale = { 1.0f, 1.0f, 1.0f };
+    angle = { 0.0f, DirectX::XM_PI, 0.0f };
+
     radius = 3.0f;
     height = 6.0f;
-   
-    scale = { 2.0f, 2.0f, 2.0f };
-    angle = { 0.0f, DirectX::XM_PI, 0.0f };
 }
+
 
 BossEnemy::~BossEnemy()
 {
-}
 
+}
 void BossEnemy::Update(float elapsedTime)
 {
     UpdateTransform();
-    GetModel()->UpdateTransform(); // ★ これを必ず入れる
+    GetModel()->UpdateTransform();
 }
+
+
 void BossEnemy::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
-    //ShapeRenderer* sr = Graphics::Instance().GetShapeRenderer();
-
-    //sr->RenderSphere(rc, position, 5.0f, { 1,0,0,1 });
-
     renderer->Render(rc, transform, GetModel(), ShaderId::Lambert);
+
+    // ★ 原点確認（赤玉）
+    ShapeRenderer* sr = Graphics::Instance().GetShapeRenderer();
+    sr->RenderSphere(rc, position, 3.0f, {1,0,0,1});
 }

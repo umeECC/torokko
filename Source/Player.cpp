@@ -226,7 +226,6 @@ void Player::Update(float elapsedTime)
 	if (!bossSpawned && position.z > 840.0f)
 	{
 		EnemyManager::Instance().SpawnBossVisual();
-		bossSpawned = true;
 	}
 
 
