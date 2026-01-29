@@ -12,7 +12,7 @@ void EnemyManager::Update(float elapsedTime)
 
 	for (Enemy* enemy : enemies)
 	{
-		//enemy->Update(elapsedTime);
+		enemy->Update(elapsedTime);
 	}
 
 	// 破棄処理
@@ -46,7 +46,7 @@ void EnemyManager::SpawnBossVisual()
 
 	// ★ プレイヤーの前に出す
 	DirectX::XMFLOAT3 p = Player::Instance().GetPosition();
-	boss->SetPosition({ p.x, p.y + 50.0f, p.z + 30.0f });
+	boss->SetPosition({ p.x, p.y + 0.0f, p.z + 0.0f });
 
 	enemies.push_back(boss);
 }

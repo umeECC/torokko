@@ -62,7 +62,7 @@ void Player::SelectRandomTrolleyImages()
 }
 
 
-static const float AREA_LENGTH = 50.0f;
+static const float AREA_LENGTH = 40.0f;
 static const int AREA_COUNT = 0;
 
 
