@@ -4,7 +4,7 @@
 Stage::Stage()
 {
 	// ステージモデルを読み込み
-	model = new Model("Data/Model/Stage/untitled.mdl");
+	model = new Model("Data/Model/Stage/Floormaguma/maguma2.mdl");
 	// untitled.mdl の実寸に合わせて調整
 	minX = -25.0f;
 	maxX = 25.0f;
