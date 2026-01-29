@@ -179,6 +179,12 @@
     </ClInclude>
     <ClInclude Include="Source\SceneOver.h" />
     <ClInclude Include="Source\SceneResult.h" />
+<<<<<<< HEAD
+=======
+    <ClInclude Include="Source\System\AudioManager.h">
+      <Filter>Source\System</Filter>
+    </ClInclude>
+>>>>>>> 5e159cb21151fc777787e49813255f3f156e1ddb
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -325,6 +331,12 @@
     <ClCompile Include="Source\SceneResult.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+<<<<<<< HEAD
+=======
+    <ClCompile Include="Source\System\AudioManager.cpp">
+      <Filter>Source\System</Filter>
+    </ClCompile>
+>>>>>>> 5e159cb21151fc777787e49813255f3f156e1ddb
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Sprite.hlsli">

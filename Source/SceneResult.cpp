@@ -13,6 +13,9 @@
 void SceneResult::Initialize() {
     //スプライト初期化
     sprite = new Sprite("Data/Sprite/gcgn.png");
+
+    audioManager = &AudioManager::Instance();
+    audioManager->PlayBGM("clear");
 }
 void SceneResult::Finalize() {
     //スプライト終了化
@@ -20,7 +23,7 @@ void SceneResult::Finalize() {
     {
         delete sprite;
         sprite = nullptr;
-
+        audioManager->StopBGM();
     }
 }
 

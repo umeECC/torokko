@@ -7,12 +7,17 @@
 void SceneOver::Initialize()
 {
     sprite = new Sprite("Data/Sprite/gameover.png");
+
+    audioManager = &AudioManager::Instance();
+
+    audioManager->PlayBGM("over");
 }
 
 void SceneOver::Finalize()
 {
     delete sprite;
     sprite = nullptr;
+    audioManager->StopBGM();
 }
 
 void SceneOver::Update(float)

@@ -5,8 +5,10 @@
 #include "Character.h"
 #include "ProjectileManager.h"
 #include "Effect.h"
-#include <Stage.h>
+//#include <Stage.h>
 #include <System/Sprite.h>
+
+class Stage;
 enum class TrolleyChoice
 {
 	None,
@@ -174,6 +176,7 @@ protected:
 
 private:
 	Model*	model = nullptr;
+	Model* hito = nullptr;
 	Stage* stage = nullptr;
 	float	moveSpeed = 5.0f;
 	float	turnSpeed = DirectX::XMConvertToRadians(720);
@@ -215,7 +218,7 @@ private:
 	float maxEnemyHP = 0.0f;
 	float enemyAttack = 0.0f;
 	float enemyDefense = 0.0f;
-	static constexpr float BOSS_HP = 750.0f;
+	static constexpr float BOSS_HP = 500.0f;
 
 	Sprite* hpFrameSprite = nullptr;   // 体力ゲージ（枠）
 	Sprite* hpBarSprite = nullptr;   // 体力（中身）

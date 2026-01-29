@@ -1,17 +1,17 @@
 #include "Stage.h"
+#include <Player.h>
 
 // コンストラクタ
 Stage::Stage()
 {
-	// ステージモデルを読み込み
-	model = new Model("Data/Model/Stage/untitled.mdl");
-	// untitled.mdl の実寸に合わせて調整
-	minX = -25.0f;
-	maxX = 25.0f;
-	minZ = 0.0f;
-	maxZ = 20.0f;
-	floorY = 0.0f;
+	model = new Model("Data/Model/Stage/Floormaguma/maguma2.mdl");
 
+	for (int i = 0; i < FLOOR_COUNT; ++i)
+	{
+		floorZ[i] = i * FLOOR_LENGTH;
+	}
+
+	floorY = -2.0f;
 }
 
 Stage::~Stage()
@@ -23,18 +23,40 @@ Stage::~Stage()
 // 更新処理
 void Stage::Update(float elapsedTime)
 {
-	// 今は特にやることはない
+	float playerZ = Player::Instance().GetPosition().z;
+
+	for (int i = 0; i < FLOOR_COUNT; ++i)
+	{
+		// プレイヤーより十分後ろに行った床を前へ
+		if (floorZ[i] + FLOOR_LENGTH < playerZ)
+		{
+			floorZ[i] += FLOOR_LENGTH * FLOOR_COUNT;
+		}
+	}
 }
+
 
 // 描画処理
 void Stage::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
-	DirectX::XMFLOAT4X4 transform;
-	DirectX::XMStoreFloat4x4(&transform, DirectX::XMMatrixIdentity());
+	using namespace DirectX;
 
-	// レンダラにモデルを描画してもらう
-	renderer->Render(rc, transform, model, ShaderId::Lambert);
+	XMMATRIX S = XMMatrixScaling(0.0005f, 0.002f, 0.002f);
+	XMMATRIX R = XMMatrixRotationY(XMConvertToRadians(90.0f));
+
+	for (int i = 0; i < FLOOR_COUNT; ++i)
+	{
+		XMMATRIX T = XMMatrixTranslation(0.0f, floorY, floorZ[i]);
+
+		XMFLOAT4X4 transform;
+		XMStoreFloat4x4(&transform, S * R * T);
+
+		renderer->Render(rc, transform, model, ShaderId::Lambert);
+	}
 }
+
+
+
 
 int Stage::GetCurrentAreaIndex(const DirectX::XMFLOAT3& playerPos) const
 {

@@ -2,7 +2,7 @@
 #include "Stage.h"
 #include "CameraController.h"
 #include "Scene.h"
-
+#include "System/AudioManager.h"
 // ƒQ[ƒ€ƒV[ƒ“
 class SceneGame : public Scene 
 {
@@ -29,6 +29,7 @@ public:
 private:
 	Stage* stage = nullptr;
 	CameraController* cameraController = nullptr;
+	AudioManager* audioManager = nullptr;
 private:
 	bool bossSpawned = false;    // ¶¬Ï‚İ‚©
 	bool bossDefeated = false;   // Œ‚”jÏ‚İ‚©

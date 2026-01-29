@@ -11,6 +11,10 @@ void SceneTitle::Initialize()
 {   //1番
 	// スプライト初期化
 	sprite = new Sprite("Data/Sprite/chip_win.png");
+
+	audioManager = &AudioManager::Instance();
+
+	audioManager->PlayBGM("title");
 	
 }
 
@@ -22,6 +26,7 @@ void SceneTitle::Finalize()
 	{
 		delete sprite;
 		sprite = nullptr;
+		audioManager->StopBGM();
 	}
 }
 
