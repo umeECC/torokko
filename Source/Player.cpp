@@ -87,12 +87,12 @@ AreaType Player::GetRandomGrowArea()
 // 初期化
 void Player::Initialize() 
 {
-	model = new Model("Data/Model/fighter/ORCA_4.5GEN_JET.mdl");
-
+	model = new Model("Data/Model/Mr.Incredible/MineCart.mdl");
+	hito = new Model("Data/Model/hito/fbx/fbx file.mdl");
 	// モデルが大きいのでスケーリング
-	scale.x = scale.y = scale.z = 0.003f;
+	scale.x = scale.y = scale.z = 0.5f;
 	
-	
+
 	// ヒットエフェクト読み込み
 	hitEffect = new Effect("Data/Effect/Hit.efk");
 
@@ -355,79 +355,34 @@ void Player::Update(float elapsedTime)
 // 描画処理
 void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 {
-	// ===== 3D描画 =====
-	renderer->Render(rc, transform, model, ShaderId::Lambert);
-	projectileManager.Render(rc, renderer);
+	using namespace DirectX;
 
-	// ===== UI描画 =====
-	DrawHPGauge(rc);          // プレイヤー左上
+	// ===== トロッコ =====
+	XMMATRIX cartM =
+		XMMatrixScaling(scale.x, scale.y, scale.z) *
+		XMMatrixRotationY(angle.y + XMConvertToRadians(90.0f)) *
+		XMMatrixTranslation(position.x, position.y, position.z);
 
-	DrawEnemyStatus(rc);      // MiniBoss / Boss 共通（右上）
+	XMFLOAT4X4 cartWorld;
+	XMStoreFloat4x4(&cartWorld, cartM);
 
-	// エリア選択UI
-	if (showStageImage && optionA && optionB)
-	{
-		float screenW = 1280.0f;
-		float screenH = 720.0f;
-		float baseW = 400.0f;
-		float baseH = 300.0f;
+	renderer->Render(rc, cartWorld, model, ShaderId::Lambert);
 
-		// A（左）
-		{
-			bool selected = (selectedArea == optionA->areaType);
-			float scale = selected ? 0.9f : 0.6f;
-			float color = selected ? 0.9f : 0.6f;
+	// ===== hito =====
+	float hitoScale = 0.12f;
 
-			optionA->sprite->Render(
-				rc,
-				screenW * 0.25f - baseW * 0.5f,
-				screenH * 0.65f - baseH * 0.5f,
-				0,
-				baseW * scale,
-				baseH * scale,
-				0,
-				color, color, color, 1.0f
-			);
-		}
+	XMMATRIX hitoM =
+		XMMatrixScaling(hitoScale, hitoScale, hitoScale) *
+		XMMatrixRotationY(angle.y) *   // ← 90度足さない
+		XMMatrixTranslation(position.x, position.y + 0.2f, position.z);
 
-		// B（右）
-		{
-			bool selected = (selectedArea == optionB->areaType);
-			float scale = selected ? 0.9f : 0.6f;
-			float color = selected ? 0.9f : 0.6f;
+	XMFLOAT4X4 hitoWorld;
+	XMStoreFloat4x4(&hitoWorld, hitoM);
 
-			optionB->sprite->Render(
-				rc,
-				screenW * 0.85f - baseW * 0.5f,
-				screenH * 0.65f - baseH * 0.5f,
-				0,
-				baseW * scale,
-				baseH * scale,
-				0,
-				color, color, color, 1.0f
-			);
-		}
-
-		// C（3択）
-		if (areaChoiceCount == 3 && optionC)
-		{
-			bool selected = (selectedArea == optionC->areaType);
-			float scale = selected ? 0.9f : 0.6f;
-			float color = selected ? 0.9f : 0.6f;
-
-			optionC->sprite->Render(
-				rc,
-				screenW * 0.575f - baseW * 0.5f,
-				screenH * 0.3f - baseH * 0.5f,
-				0,
-				baseW * scale,
-				baseH * scale,
-				0,
-				color, color, color, 1.0f
-			);
-		}
-	}
+	renderer->Render(rc, hitoWorld, hito, ShaderId::Lambert);
 }
+
+
 bool Player::IsInBossRoom() const
 {
 	if (!stage) return false;

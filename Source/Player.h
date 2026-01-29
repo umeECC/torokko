@@ -167,6 +167,7 @@ protected:
 
 private:
 	Model*	model = nullptr;
+	Model* hito = nullptr;
 	Stage* stage = nullptr;
 	float	moveSpeed = 5.0f;
 	float	turnSpeed = DirectX::XMConvertToRadians(720);
