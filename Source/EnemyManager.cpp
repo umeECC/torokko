@@ -83,8 +83,8 @@ void EnemyManager::Update(float elapsedTime)
 	// ”jŠüƒŠƒXƒg‚ğƒNƒŠƒA
 	removes.clear();
 
-	// “G“¯m‚ÌÕ“Ëˆ—
-	CollisionEnemyVsEnemies();
+	//// “G“¯m‚ÌÕ“Ëˆ—
+	//CollisionEnemyVsEnemies();
 }
 
 

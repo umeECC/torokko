@@ -248,4 +248,6 @@ private:
 	Sprite* bossHpFrameSprite = nullptr;
 	Sprite* bossHpBarSprite = nullptr;
 
+	int bosskau = 0;
+
 };

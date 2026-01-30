@@ -17,6 +17,8 @@ void AudioManager::Initialize()
 
     bgms["clear"] = audio.LoadAudioSource("Data/Sound/clear.wav");
 
+
+
     // ‰Šú‰¹—Êİ’è
     SetBGMVolume(0.6f);
     SetSEVolume(0.8f);

@@ -33,4 +33,6 @@ private:
 private:
 	bool bossSpawned = false;    // ¶¬Ï‚İ‚©
 	bool bossDefeated = false;   // Œ‚”jÏ‚İ‚©
+
+	AreaType currentAreaType;
 };

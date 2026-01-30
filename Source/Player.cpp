@@ -16,6 +16,8 @@
 #include "SceneResult.h"
 #include "SceneOver.h"
 #include <BossEnemy.h>
+#include <EnemySlime.h>
+
 
 void Player::SelectRandomTrolleyImages()
 {
@@ -1263,10 +1265,31 @@ void Player::ApplyAreaGrowth(AreaType area)
 		break;
 
 	case AreaType::MiniBoss:
+	{
 		StartMiniBossBattle();
-		break;
-	
 
+		if (bosskau == 0)
+		{
+			EnemySlime* slime = new EnemySlime();
+			slime->SetPosition(DirectX::XMFLOAT3(0, 0, 325));
+			slime->SetTerritory(slime->GetPosition(), 10.0f);
+			EnemyManager& enemyManager = EnemyManager::Instance();
+			enemyManager.Register(slime);
+		}
+	
+		if (bosskau == 1)
+		{
+			EnemySlime* slime = new EnemySlime();
+			slime->SetPosition(DirectX::XMFLOAT3(0, 0, 605));
+			slime->SetTerritory(slime->GetPosition(), 10.0f);
+			EnemyManager& enemyManager = EnemyManager::Instance();
+			enemyManager.Register(slime);
+		}
+
+	
+		
+		break;
+	}
 
 	default:
 		break;
@@ -1293,6 +1316,10 @@ void Player::BeginAreaChoice()
 	isMiniBossChoiceArea =
 		(currentAreaIndex == 7 || currentAreaIndex == 14);
 
+	if (currentAreaIndex == 8)
+	{
+		bosskau += 1;
+	}
 
 	SelectRandomTrolleyImages();
 	selectedArea = optionA->areaType;
