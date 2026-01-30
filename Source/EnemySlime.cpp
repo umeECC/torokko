@@ -28,6 +28,13 @@ EnemySlime::~EnemySlime()
 // 更新処理
 void EnemySlime::Update(float elapsedTime)
 {
+
+	if (state == State::Idle)
+	{
+		UpdateTransform();
+		model->UpdateTransform();
+		return;   // ★ 移動・索敵しない
+	}
 	// ステート毎の更新処理	
 	switch (state)
 	{

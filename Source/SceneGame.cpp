@@ -17,12 +17,13 @@ void SceneGame::Initialize()
 	Player::Instance().Initialize();
 
 
-	// ★ ステージをプレイヤーにセット
-	Player::Instance().SetStage(stage);
-
 	audioManager = &AudioManager::Instance();
 
-	audioManager->PlayBGM("stage",true);
+	audioManager->PlayBGM("stage", true);
+
+
+	// ★ ステージをプレイヤーにセット
+	Player::Instance().SetStage(stage);
 
 	// カメラ初期設定
 	Graphics& graphics = Graphics::Instance();
@@ -44,13 +45,12 @@ void SceneGame::Initialize()
 
 	// エネミー初期化
 	EnemyManager& enemyManager = EnemyManager::Instance();
-	for (int i = 0; i < 2; ++i)
-	{
+
 		EnemySlime* slime = new EnemySlime();
-		slime->SetPosition(DirectX::XMFLOAT3(i * 2.0f, 0, 5));
+		slime->SetPosition(DirectX::XMFLOAT3(0, 0, 435));
 		slime->SetTerritory(slime->GetPosition(), 10.0f);
 		enemyManager.Register(slime);
-	}
+
 }
 
 // 終了化
@@ -73,12 +73,10 @@ void SceneGame::Finalize()
 		stage = nullptr;
 	}
 
-
-	audioManager->StopBGM();
-
-
 	// プレイヤー終了化
 	Player::Instance().Finalize();
+
+	audioManager->StopBGM();
 }
 
 // 更新処理
@@ -173,4 +171,3 @@ void SceneGame::SpawnBoss()
 
 	bossSpawned = true;
 }
-
