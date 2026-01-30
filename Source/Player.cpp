@@ -208,12 +208,32 @@ void Player::Update(float elapsedTime)
 {
 	prevStatus = status;
 
+	// ===== ノックバック更新（最優先）=====
+	UpdateKnockback(elapsedTime);
+
+	// ===== バトル中 =====
 	if (isInBattle)
 	{
-		// ★ ボス戦では前に進ませない
-		UpdateAutoBattle(elapsedTime);
+		// ★ 追加
+		if (!isKnockback)
+		{
+			InputMove(elapsedTime);   // ← これが無かった
+		}
+
+		UpdateVelocity(elapsedTime);
+
+		if (!isKnockback)
+		{
+			UpdateAutoBattle(elapsedTime);
+		}
+
+		UpdateTransform();
+		model->UpdateTransform();
 		return;
 	}
+
+
+
 
 	
 	if (isKnockback)
@@ -308,7 +328,7 @@ void Player::Update(float elapsedTime)
 	UpdateVelocity(elapsedTime);
 
 	projectileManager.Update(elapsedTime);
-
+	
 	CollisionPlayerVsEnemies();
 	CollisionProjectilesVsEnemies();
 
@@ -1000,16 +1020,24 @@ DirectX::XMFLOAT3 Player::GetMoveVec() const
 // 移動入力処理
 void Player::InputMove(float elapsedTime)
 {
-	// 進行ベクトル取得
-	DirectX::XMFLOAT3 moveVec = GetMoveVec();
+	if (isKnockback) return; // ★ これ最重要
 
-	Player::position.z += 0.1f;
+	Move(elapsedTime, 0.0f, 1.0f, moveSpeed);
 
-	//if (Player::position.z >= 50.0f)
-	//{
-	//	Player::position.z = 0.0f;
-	//}
 }
+void Player::UpdateKnockback(float elapsedTime)
+{
+	if (!isKnockback) return;
+
+	knockbackTimer -= elapsedTime;
+
+	if (knockbackTimer <= 0.0f)
+	{
+		isKnockback = false;  // ← ★これが実行されてる？
+		OutputDebugStringA("Knockback End\n");
+	}
+}
+
 
 // プレイヤーとエネミーとの衝突処理
 void Player::CollisionPlayerVsEnemies()
@@ -1050,9 +1078,26 @@ void Player::CollisionPlayerVsEnemies()
 			}
 			else
 			{
-				// 押し出し後の位置設定
-				enemy->SetPosition(outPosition);
+				if (isKnockback) return;
+
+				DirectX::XMFLOAT3 dir =
+				{
+					position.x - enemy->GetPosition().x,
+					0.0f,
+					position.z - enemy->GetPosition().z
+				};
+
+				float len = sqrtf(dir.x * dir.x + dir.z * dir.z);
+				if (len > 0.0f)
+				{
+					dir.x /= len;
+					dir.z /= len;
+				}
+				
+				AddImpulse({ dir.x * 15.0f, 8.0f, dir.z * 15.0f });
+				StartKnockback(0.25f);
 			}
+
 		}
 
 	}

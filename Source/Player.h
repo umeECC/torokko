@@ -164,6 +164,7 @@ private:
 	// ’eŠÛ“ü—Íˆ—
 	void InputProjectile();
 
+	void UpdateKnockback(float elapsedTime);
 
 	
 

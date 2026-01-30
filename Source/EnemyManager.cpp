@@ -5,11 +5,8 @@
 #include "Player.h"   // ★ 必須
 void EnemyManager::PlayerVsEnemies()
 {
+
 	Player& player = Player::Instance();
-
-	// ★ ボス戦中は押し返さない
-	if (player.IsBossBattle())
-
 
 	if (player.IsKnockback())
 		return;
@@ -29,8 +26,8 @@ void EnemyManager::PlayerVsEnemies()
 			enemy->GetHeight(),
 			outPos))
 		{
-			// ノックバック処理（通常敵のみ）
-			DirectX::XMFLOAT3 dir = {
+			DirectX::XMFLOAT3 dir =
+			{
 				playerPos.x - enemy->GetPosition().x,
 				0.0f,
 				playerPos.z - enemy->GetPosition().z
@@ -43,12 +40,20 @@ void EnemyManager::PlayerVsEnemies()
 				dir.z /= len;
 			}
 
-			player.AddImpulse({ dir.x * 15.0f, 8.0f, dir.z * 15.0f });
+			float power = enemy->IsBoss() ? 30.0f : 18.0f;
+
+			player.AddImpulse({
+				dir.x * power,
+				8.0f,
+				dir.z * power
+				});
+
 			player.StartKnockback(0.25f);
 			return;
 		}
 	}
 }
+
 
 
 
