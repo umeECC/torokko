@@ -1265,11 +1265,26 @@ void Player::ApplyAreaGrowth(AreaType area)
 	{
 		StartMiniBossBattle();
 
-		EnemySlime* slime = new EnemySlime();
-		slime->SetPosition(DirectX::XMFLOAT3(0, 0, 325));
-		slime->SetTerritory(slime->GetPosition(), 10.0f);
-		EnemyManager& enemyManager = EnemyManager::Instance();
-		enemyManager.Register(slime);
+		if (bosskau == 0)
+		{
+			EnemySlime* slime = new EnemySlime();
+			slime->SetPosition(DirectX::XMFLOAT3(0, 0, 325));
+			slime->SetTerritory(slime->GetPosition(), 10.0f);
+			EnemyManager& enemyManager = EnemyManager::Instance();
+			enemyManager.Register(slime);
+		}
+	
+		if (bosskau == 1)
+		{
+			EnemySlime* slime = new EnemySlime();
+			slime->SetPosition(DirectX::XMFLOAT3(0, 0, 605));
+			slime->SetTerritory(slime->GetPosition(), 10.0f);
+			EnemyManager& enemyManager = EnemyManager::Instance();
+			enemyManager.Register(slime);
+		}
+
+	
+		
 		break;
 	}
 
@@ -1298,6 +1313,10 @@ void Player::BeginAreaChoice()
 	isMiniBossChoiceArea =
 		(currentAreaIndex == 7 || currentAreaIndex == 14);
 
+	if (currentAreaIndex == 8)
+	{
+		bosskau += 1;
+	}
 
 	SelectRandomTrolleyImages();
 	selectedArea = optionA->areaType;

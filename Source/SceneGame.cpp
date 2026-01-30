@@ -19,7 +19,7 @@ void SceneGame::Initialize()
 
 	audioManager = &AudioManager::Instance();
 
-	audioManager->PlayBGM("stage", true);
+	//audioManager->PlayBGM("stage", true);
 
 
 	// ★ ステージをプレイヤーにセット
