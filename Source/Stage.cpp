@@ -4,7 +4,7 @@
 // コンストラクタ
 Stage::Stage()
 {
-	model = new Model("Data/Model/Stage/Floormaguma/maguma2.mdl");
+	floorModel = new Model("Data/Model/Stage/syokifloor.mdl");
 
 	for (int i = 0; i < FLOOR_COUNT; ++i)
 	{
@@ -17,7 +17,7 @@ Stage::Stage()
 Stage::~Stage()
 {
 	// ステージモデルを破棄
-	delete model;
+	delete floorModel;
 }
 
 // 更新処理
@@ -51,10 +51,40 @@ void Stage::Render(const RenderContext& rc, ModelRenderer* renderer)
 		XMFLOAT4X4 transform;
 		XMStoreFloat4x4(&transform, S * R * T);
 
-		renderer->Render(rc, transform, model, ShaderId::Lambert);
+		renderer->Render(rc, transform, floorModel, ShaderId::Lambert);
 	}
 }
 
+static const char* GetFloorModelPath(AreaType type)
+{
+	switch (type)
+	{
+	case AreaType::AttackGrow:      return "Data/Model/Stage/maguma2.mdl";
+	case AreaType::DefenseGrow:     return "Data/Model/Stage/sabakufloor.mdl";
+	case AreaType::CritRateGrow:    return "Data/Model/Stage/koorifloor.mdl";
+	case AreaType::CritDamageGrow:  return "Data/Model/Stage/doukutufloor.mdl";
+	case AreaType::MiniBoss:        return "Data/Model/Stage/bossfloor.mdl";
+	case AreaType::Boss:            return "Data/Model/Stage/bossfloor.mdl";
+	default:                        return "Data/Model/Stage/syokifloor.mdl";
+	}
+}
+
+
+void Stage::SetAreaType(AreaType type)
+{
+	if (currentArea == type)
+		return;
+
+	currentArea = type;
+
+	if (floorModel)
+	{
+		delete floorModel;
+		floorModel = nullptr;
+	}
+
+	floorModel = new Model(GetFloorModelPath(type));
+}
 
 
 

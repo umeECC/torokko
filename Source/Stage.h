@@ -2,7 +2,7 @@
 
 #include "System/ModelRenderer.h"
 #include "Player.h" // AreaType 用
-// ステージ
+
 class Stage
 {
 public:
@@ -15,6 +15,7 @@ public:
 	// 描画処理
 	void Render(const RenderContext& rc, ModelRenderer* renderer);
 
+	// ★ エリアタイプ設定
 	void SetAreaType(AreaType type);
 
 	// ===== ステージサイズ取得 =====
@@ -26,20 +27,19 @@ public:
 	int GetCurrentAreaIndex(const DirectX::XMFLOAT3& playerPos) const;
 
 private:
-	Model* model = nullptr;
+	// ★ 床モデル
+	Model* floorModel = nullptr;
+	AreaType currentArea = AreaType::None;
 
 	// ===== ステージサイズ =====
-	float minX = -20.0f;   // 左端
-	float maxX = 20.0f;   // 右端
-	float minZ = 0.0f;   // 開始位置
-	float maxZ = 40.0f;   // 奥行き（←ここを変える）
-	float floorY = -1.5f;   // 床の高さ
-	DirectX::XMFLOAT3 scale{ 0.001f, 0.001f, 0.001f };
+	float minX = -20.0f;
+	float maxX = 20.0f;
+	float minZ = 0.0f;
+	float maxZ = 40.0f;
+	float floorY = -1.5f;
 
 	static constexpr int FLOOR_COUNT = 3;
-	static constexpr float FLOOR_LENGTH = 50.0f; // 1枚の長さ（要調整）
+	static constexpr float FLOOR_LENGTH = 50.0f;
 
 	float floorZ[FLOOR_COUNT];
-
 };
-

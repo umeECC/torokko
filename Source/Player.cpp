@@ -74,15 +74,16 @@ AreaType Player::GetRandomGrowArea()
 	int r = rand() % 4; 
 	switch (r)
 	{
-	case 0: return AreaType::AttackGrow;
-	case 1: return AreaType::DefenseGrow;
-	case 2: return AreaType::CritRateGrow;
-	case 3: return AreaType::CritDamageGrow;
+	case 0: return AreaType::AttackGrow;//火山
+	case 1: return AreaType::DefenseGrow;//砂漠
+	case 2: return AreaType::CritRateGrow;//氷山
+	case 3: return AreaType::CritDamageGrow;//洞窟
 	case 4: return AreaType::MiniBoss;
 	case 5: return AreaType::Boss;
 	default: return AreaType::AttackGrow;
 	}
 }
+
 
 
 
@@ -1342,6 +1343,10 @@ void Player::ApplyAreaGrowth(AreaType area)
 
 	// ★ 最後に必ず更新
 	lastSelectedArea = area;
+	if (stage)
+	{
+		stage->SetAreaType(area);
+	}
 }
 
 
