@@ -208,10 +208,11 @@ void Player::Update(float elapsedTime)
 
 	if (isInBattle)
 	{
-		position.z += 0.1f;
+		// ★ ボス戦では前に進ませない
 		UpdateAutoBattle(elapsedTime);
 		return;
 	}
+
 	
 	if (isKnockback)
 	{
@@ -325,15 +326,15 @@ void Player::Update(float elapsedTime)
 
 
 		
-		if (areaIndex == 21 && position.z > 845.0f)
+		if (areaIndex == 21)
 		{
 			StartBossBattle();
 		}
-
 		else
 		{
 			BeginAreaChoice();
 		}
+
 
 	}
 
@@ -929,9 +930,10 @@ void Player::StartMiniBossBattle()
 	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
 }
 
-
 void Player::StartBossBattle()
 {
+	if (isBossBattle) return; // ★ 追加
+
 	isInBattle = true;
 	isBossBattle = true;
 	isMiniBossBattle = false;
@@ -942,6 +944,7 @@ void Player::StartBossBattle()
 	enemyAttack = 30.0f;
 	enemyDefense = 15.0f;
 }
+
 
 // スティック入力値から移動ベクトルを取得
 DirectX::XMFLOAT3 Player::GetMoveVec() const

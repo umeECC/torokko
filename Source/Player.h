@@ -209,6 +209,8 @@ private:
 	// ===== バトル管理 =====
 	bool isInBattle = false;     // 今戦闘中？
 	bool isBossBattle = false;  // ボス戦か？
+
+
 	bool isMiniBossBattle = false;
 
 	float battleTimer = 0.0f;   // 自動戦闘用タイマー

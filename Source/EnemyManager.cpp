@@ -9,7 +9,7 @@ void EnemyManager::PlayerVsEnemies()
 
 	// š ƒ{ƒXí’†‚Í‰Ÿ‚µ•Ô‚³‚È‚¢
 	if (player.IsBossBattle())
-		return;
+
 
 	if (player.IsKnockback())
 		return;
