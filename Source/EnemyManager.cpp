@@ -40,15 +40,15 @@ void EnemyManager::PlayerVsEnemies()
 				dir.z /= len;
 			}
 
-			float power = enemy->IsBoss() ? 30.0f : 18.0f;
+			float power = enemy->IsBoss() ? 20.0f : 12.0f;
 
 			player.AddImpulse({
 				dir.x * power,
-				8.0f,
+				3.0f,
 				dir.z * power
 				});
 
-			player.StartKnockback(0.25f);
+			player.StartKnockback(0.15f);
 			return;
 		}
 	}

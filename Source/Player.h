@@ -179,7 +179,7 @@ private:
 	Model*	model = nullptr;
 	Model* hito = nullptr;
 	Stage* stage = nullptr;
-	float	moveSpeed = 5.0f;
+	float	moveSpeed = 7.0f;
 	float	turnSpeed = DirectX::XMConvertToRadians(720);
 	float				jumpSpeed = 12.0f;
 	int					jumpCount = 0;
