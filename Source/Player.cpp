@@ -103,7 +103,7 @@ void Player::Initialize()
 	// ヒットSE読み込み
 	hitSE = Audio::Instance().LoadAudioSource("Data/Sound/Hit.wav");
 
-	status.hp = 10000.0f;
+	status.hp = 100.0f;
 	status.attack = 10.0f;
 	status.defense = 5.0f;
 	status.critRate = 0.05f;
@@ -113,8 +113,8 @@ void Player::Initialize()
 	hpBarSprite = new Sprite("Data/Sprite/体力.png");
 	attackIconSprite = new Sprite("Data/Sprite/拳.png");
 	defenseIconSprite = new Sprite("Data/Sprite/盾.png");
-	critIconSprite = new Sprite("Data/Sprite/会心ダメ.png");
-	critDamageIconSprite = new Sprite("Data/Sprite/会心.png");
+	critIconSprite = new Sprite("Data/Sprite/会心.png");
+	critDamageIconSprite = new Sprite("Data/Sprite/会心ダメ.png");
 
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/火山.png"), AreaType::AttackGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/砂漠.png"), AreaType::DefenseGrow });
@@ -202,6 +202,11 @@ void Player::Finalize()
 	bossHpFrameSprite = nullptr;
 	bossHpBarSprite = nullptr;
 
+}
+
+bool Player::IsFinaBossBattle() const
+{
+	return isBossBattle;
 }
 
 // 更新処理
@@ -489,6 +494,7 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 		}
 	}
 }
+
 
 
 bool Player::IsInBossRoom() const
@@ -857,7 +863,13 @@ void Player::StartBossBattle()
 	isInBattle = true;
 	isBossBattle = true;
 	isMiniBossBattle = false;
+	isChoosingAreaBonus = false;
+	showStageImage = false;
+	stageImageShown = true;
 
+	optionA = nullptr;
+	optionB = nullptr;
+	optionC = nullptr;
 	maxEnemyHP = BOSS_HP;
 	enemyHP = maxEnemyHP;
 
@@ -1125,7 +1137,7 @@ void Player::ApplyAreaGrowth(AreaType area)
 	switch (area)
 	{
 	case AreaType::AttackGrow:
-		status.attack += 3.0f * growthMultiplier;
+		status.attack += 6.0f * growthMultiplier;
 		break;
 
 	case AreaType::DefenseGrow:

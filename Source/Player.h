@@ -74,7 +74,7 @@ public:
 
 	// I—¹‰»
 	void Finalize();
-
+	bool IsFinaBossBattle() const;
 	// XVˆ—
 	void Update(float elapsedTime);
 public:
