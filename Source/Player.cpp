@@ -483,8 +483,8 @@ void Player::Render(const RenderContext& rc, ModelRenderer* renderer)
 
 			optionC->sprite->Render(
 				rc,
-				screenW * 0.575f - baseW * 0.5f,
-				screenH * 0.3f - baseH * 0.5f,
+				screenW * 0.575f - baseW * 0.6f,
+				screenH * 0.3f - baseH * 0.6f,
 				0,
 				baseW * scale,
 				baseH * scale,
