@@ -5,7 +5,6 @@
 #include "Player.h"   // ★ 必須
 void EnemyManager::PlayerVsEnemies()
 {
-
 	Player& player = Player::Instance();
 
 	if (player.IsKnockback())
@@ -26,26 +25,17 @@ void EnemyManager::PlayerVsEnemies()
 			enemy->GetHeight(),
 			outPos))
 		{
-			DirectX::XMFLOAT3 dir =
-			{
-				playerPos.x - enemy->GetPosition().x,
-				0.0f,
-				playerPos.z - enemy->GetPosition().z
-			};
+			DirectX::XMFLOAT3 enemyPos = enemy->GetPosition();
 
-			float len = sqrtf(dir.x * dir.x + dir.z * dir.z);
-			if (len > 0.0f)
-			{
-				dir.x /= len;
-				dir.z /= len;
-			}
+			// ★ Z方向のみでノックバック方向決定
+			float dirZ = (playerPos.z >= enemyPos.z) ? 1.0f : -1.0f;
 
 			float power = enemy->IsBoss() ? 20.0f : 12.0f;
 
 			player.AddImpulse({
-				dir.x * power,
+				0.0f,          // ← 横方向は完全にゼロ
 				3.0f,
-				dir.z * power
+				dirZ * power
 				});
 
 			player.StartKnockback(0.15f);
@@ -53,6 +43,7 @@ void EnemyManager::PlayerVsEnemies()
 		}
 	}
 }
+
 
 
 
