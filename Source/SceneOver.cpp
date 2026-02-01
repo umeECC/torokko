@@ -2,6 +2,7 @@
 #include "System/Input.h"
 #include "SceneManager.h"
 #include "SceneGame.h"
+#include "SceneTitle.h"
 #include <System/Graphics.h>
 
 void SceneOver::Initialize()
@@ -23,10 +24,9 @@ void SceneOver::Finalize()
 void SceneOver::Update(float)
 {
     // Aボタン or Enter でリトライ
-    if (Input::Instance().GetGamePad().GetButtonDown() & GamePad::BTN_A ||
-        GetAsyncKeyState(VK_RETURN) & 0x8000)
+    if (GetAsyncKeyState(VK_SPACE) & 0x8000)
     {
-        SceneManager::Instance().ChangeScene(new SceneGame());
+        SceneManager::Instance().ChangeScene(new SceneTitle());
     }
 }
 

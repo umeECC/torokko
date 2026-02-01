@@ -1293,7 +1293,15 @@ void Player::UpdateAutoBattle(float elapsedTime)
 void Player::OnEnemyDefeated()
 {
 	isInBattle = false;
+	// ★ 全敵を消す（中ボス想定）
+	EnemyManager& mgr = EnemyManager::Instance();
 
+
+	for (int i = 0; i < mgr.GetEnemyCount(); ++i)
+	{
+		Enemy* e = mgr.GetEnemy(i);
+		e->Destroy();
+	}
 	if (!isBossBattle)
 	{
 		// 中ボス報酬（全部上がる）
@@ -1306,6 +1314,9 @@ void Player::OnEnemyDefeated()
 		{
 			status.hp == 100.0f;
 		}
+
+	
+	
 	}
 	else
 	{
