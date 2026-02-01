@@ -35,7 +35,7 @@ void SceneResult::Update(float elapsedTime)
     //Input& input = Input::Instance();
     GamePad& gamePad = Input::Instance().GetGamePad();
     const GamePadButton anyButton = GamePad::BTN_A;
-    if ((gamePad.GetButtonDown() & anyButton))
+    if ((GetAsyncKeyState(VK_SPACE) & 0x8000))
     {
         // 例：タイトルに戻る
         SceneManager::Instance().ChangeScene(new SceneTitle());
