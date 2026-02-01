@@ -86,8 +86,6 @@ void Stage::SetAreaType(AreaType type)
 	floorModel = new Model(GetFloorModelPath(type));
 }
 
-
-
 int Stage::GetCurrentAreaIndex(const DirectX::XMFLOAT3& playerPos) const
 {
 	// ボス部屋（Z方向の奥）84
