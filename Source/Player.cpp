@@ -103,7 +103,7 @@ void Player::Initialize()
 	// ヒットSE読み込み
 	hitSE = Audio::Instance().LoadAudioSource("Data/Sound/Hit.wav");
 
-	status.hp = 100.0f;
+	status.hp = 10000.0f;
 	status.attack = 10.0f;
 	status.defense = 5.0f;
 	status.critRate = 0.05f;
