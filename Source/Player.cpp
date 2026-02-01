@@ -840,110 +840,7 @@ void Player::RenderDebugPrimitive(const RenderContext& rc, ShapeRenderer* render
 
 void Player::DrawDebugGUI()
 {
-	ImVec2 pos = ImGui::GetMainViewport()->GetWorkPos();
-	ImGui::SetNextWindowPos(ImVec2(pos.x + 10, pos.y + 10), ImGuiCond_Once);
-	ImGui::SetNextWindowSize(ImVec2(320, 420), ImGuiCond_FirstUseEver);
-
-	auto DrawAreaText = [](AreaType type)
-		{
-			switch (type)
-			{
-			case AreaType::AttackGrow:      ImGui::Text("Attack Up"); break;
-			case AreaType::DefenseGrow:    ImGui::Text("Defense Up"); break;
-			case AreaType::CritRateGrow:   ImGui::Text("Crit Rate Up"); break;
-			case AreaType::CritDamageGrow: ImGui::Text("Crit Damage Up"); break;
-			//case AreaType::BalancedGrow:   ImGui::Text("Balanced Up"); break;
-			case AreaType::MiniBoss:       ImGui::Text("Mini Boss Area"); break;
-			case AreaType::Boss:           ImGui::Text("Boss Area"); break;
-
-		
-
-			default:                       ImGui::Text("None"); break;
-			}
-		};
-
-	if (!ImGui::Begin("Player"))
-	{
-		ImGui::End();
-		return;
-	}
-
-	// ===== Transform =====
-	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-		ImGui::InputFloat3("Position", &position.x);
-
-		DirectX::XMFLOAT3 a;
-		a.x = DirectX::XMConvertToDegrees(angle.x);
-		a.y = DirectX::XMConvertToDegrees(angle.y);
-		a.z = DirectX::XMConvertToDegrees(angle.z);
-		ImGui::InputFloat3("Angle", &a.x);
-		angle.x = DirectX::XMConvertToRadians(a.x);
-		angle.y = DirectX::XMConvertToRadians(a.y);
-		angle.z = DirectX::XMConvertToRadians(a.z);
-
-		ImGui::InputFloat3("Scale", &scale.x);
-	}
-
-	// ===== Status =====
-	if (ImGui::CollapsingHeader("Status", ImGuiTreeNodeFlags_DefaultOpen))
-	{
-		ImGui::Text("HP           : %.1f", status.hp);
-		ImGui::Text("Attack       : %.1f", status.attack);
-		ImGui::Text("Defense      : %.1f", status.defense);
-		ImGui::Text("Crit Rate    : %.1f%%", status.critRate * 100.0f);
-		ImGui::Text("Crit Damage  : x%.2f", status.critDamage);
-	}
-
-	ImGui::Separator();
-	ImGui::Text("Area Index : %d", currentAreaIndex);
-	ImGui::Text("Choice Count : %d", areaChoiceCount);
-
-	// ===== Area Choice Debug =====
-	if (isChoosingAreaBonus)
-	{
-		ImGui::Separator();
-		ImGui::Text("Choose Area Growth");
-
-		if (optionA)
-		{
-			ImGui::Text(selectedArea == optionA->areaType ? "▶ A" : "  A");
-			ImGui::SameLine();
-			DrawAreaText(optionA->areaType);
-		}
-
-		if (optionB)
-		{
-			ImGui::Text(selectedArea == optionB->areaType ? "▶ B" : "  B");
-			ImGui::SameLine();
-			DrawAreaText(optionB->areaType);
-		}
-
-		if (areaChoiceCount == 3 && optionC)
-		{
-			ImGui::Text(selectedArea == optionC->areaType ? "▶ C" : "  C");
-			ImGui::SameLine();
-			DrawAreaText(optionC->areaType);
-		}
-		
-
-		ImGui::Separator();
-		ImGui::Text("Current Selected:");
-		DrawAreaText(selectedArea);
-
-		ImGui::Text("Last Area:");
-		DrawAreaText(lastSelectedArea);
-	}
-
-	// ===== Battle =====
-	if (isInBattle)
-	{
-		ImGui::Separator();
-		ImGui::Text(isBossBattle ? "BOSS BATTLE" : "MINI BOSS");
-		ImGui::Text("Enemy HP : %.1f", enemyHP);
-	}
-
-	ImGui::End();
+	
 }
 
 void Player::StartMiniBossBattle()
@@ -1198,72 +1095,7 @@ void Player::InputJump()
 // 弾丸入力処理
 void Player::InputProjectile()
 {
-	GamePad& gamePad = Input::Instance().GetGamePad();
-
-	// 直進弾丸発射
-	if (gamePad.GetButtonDown() & GamePad::BTN_X)
-	{
-		// 前方向
-		DirectX::XMFLOAT3 dir;
-		dir.x = sinf(angle.y);
-		dir.y = 0.0f;
-		dir.z = cosf(angle.y);
-		// 発射位置（プレイヤーの腰あたり）
-		DirectX::XMFLOAT3 pos;
-		pos.x = position.x;
-		pos.y = position.y + height * 0.5f;
-		pos.z = position.z;
-		// 発射
-		ProjectileStraight* projectile = new ProjectileStraight(&projectileManager);
-		projectile->Launch(dir, pos);
-	}
-	// 追尾弾丸発射
-	if (gamePad.GetButtonDown() & GamePad::BTN_Y)
-	{
-		// 前方向
-		DirectX::XMFLOAT3 dir;
-		dir.x = sinf(angle.y);
-		dir.y = 0.0f;
-		dir.z = cosf(angle.y);
-
-		// 発射位置（プレイヤーの腰あたり）
-		DirectX::XMFLOAT3 pos;
-		pos.x = position.x;
-		pos.y = position.y + height * 0.5f;
-		pos.z = position.z;
-
-		// ターゲット（デフォルトではプレイヤーの前方）
-		DirectX::XMFLOAT3 target;
-		target.x = pos.x + dir.x * 1000.0f;
-		target.y = pos.y + dir.y * 1000.0f;
-		target.z = pos.z + dir.z * 1000.0f;
-
-		// 一番近くの敵をターゲットにする
-		float dist = FLT_MAX;
-		EnemyManager& enemyManager = EnemyManager::Instance();
-		int enemyCount = enemyManager.GetEnemyCount();
-		for (int i = 0; i < enemyCount; ++i)
-		{
-			// 敵との距離判定
-			Enemy* enemy = EnemyManager::Instance().GetEnemy(i);
-			DirectX::XMVECTOR P = DirectX::XMLoadFloat3(&position);
-			DirectX::XMVECTOR E = DirectX::XMLoadFloat3(&enemy->GetPosition());
-			DirectX::XMVECTOR V = DirectX::XMVectorSubtract(E, P);
-			DirectX::XMVECTOR D = DirectX::XMVector3LengthSq(V);
-			float d;
-			DirectX::XMStoreFloat(&d, D);
-			if (d < dist)
-			{
-				dist = d;
-				target = enemy->GetPosition();
-				target.y += enemy->GetHeight() * 0.5f;
-			}
-		}
-
-		// 発射
-		ProjectileHoming* projectile = new ProjectileHoming(&projectileManager);
-		projectile->Launch(dir, pos, target);
-	}
+	
 }
 
 void Player::StartKnockback(float time)
@@ -1421,7 +1253,7 @@ void Player::UpdateAutoBattle(float elapsedTime)
 
 	// ===== プレイヤー攻撃 =====
 	float damage = status.attack - enemyDefense;
-	if (damage < 1.0f) damage = 1.0f;
+	if (damage < 0.0f) damage = 1.0f;
 
 	// ヒットSE再生
 	hitSE->Play(false);
@@ -1447,7 +1279,7 @@ void Player::UpdateAutoBattle(float elapsedTime)
 
 	// ===== 敵の攻撃 =====
 	float enemyDamage = enemyAttack - status.defense;
-	if (enemyDamage < 1.0f) enemyDamage = 1.0f;
+	if (enemyDamage < 0.0f) enemyDamage = 1.0f;
 
 	status.hp -= enemyDamage;
 	if (status.hp < 0.0f)

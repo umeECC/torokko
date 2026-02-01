@@ -44,8 +44,8 @@ void SceneTitle::Update(float elapsedTime)
 	static bool prevDown = false;
 	static bool prevSpace = false;
 
-	bool nowUp = (GetAsyncKeyState(VK_UP) & 0x8000) != 0;
-	bool nowDown = (GetAsyncKeyState(VK_DOWN) & 0x8000) != 0;
+	bool nowUp = (GetAsyncKeyState('W') & 0x8000) != 0;
+	bool nowDown = (GetAsyncKeyState('S') & 0x8000) != 0;
 	bool nowSpace = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
 
 	if (nowUp && !prevUp)    choice = true;
@@ -89,22 +89,22 @@ void SceneTitle::Render()
 		1, 1, 1, 1);
 
 	// ‘I‘ð’†‚Í 1.2”{
-	float scaleStart = (choice ? 1.5f : 1.0f);
-	float scaleTutorial = (!choice ? 1.5f : 1.0f);
+	float scaleStart = (choice ? 1.2f : 1.0f);
+	float scaleTutorial = (!choice ? 1.2f : 1.0f);
 
 	float width = 300.0f;
 	float height = 100.0f;
 
 	// Start
 	spriteStart->Render(rc,
-		600, 450, 0,
+		775, 250, 0,
 		width * scaleStart, height * scaleStart,
 		0,
 		1, 1, 1, 1);
 
 	// Tutorial
 	spriteTutorial->Render(rc,
-		600, 650, 0,
+		775, 450, 0,
 		width * scaleTutorial, height * scaleTutorial,
 		0,
 		1, 1, 1, 1);
