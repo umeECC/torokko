@@ -48,7 +48,8 @@ void SceneGame::Initialize()
 
 	
 	
-
+	audioManager = &AudioManager::Instance();
+	audioManager->PlayBGM("stage");
 		
 
 }

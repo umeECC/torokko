@@ -12,7 +12,7 @@
 
 void SceneResult::Initialize() {
     //スプライト初期化
-    sprite = new Sprite("Data/Sprite/gcgn.png");
+    sprite = new Sprite("Data/Sprite/gameclear.png");
 
     audioManager = &AudioManager::Instance();
     audioManager->PlayBGM("clear");
