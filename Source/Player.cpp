@@ -849,7 +849,7 @@ void Player::StartMiniBossBattle()
 	isBossBattle = false;
 	isMiniBossBattle = true;
 
-	maxEnemyHP = 50.0f + currentAreaIndex * 10.0f;
+	maxEnemyHP = 50.0f + currentAreaIndex * 15.0f;
 	enemyHP = maxEnemyHP;
 
 	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
@@ -873,8 +873,8 @@ void Player::StartBossBattle()
 	maxEnemyHP = BOSS_HP;
 	enemyHP = maxEnemyHP;
 
-	enemyAttack = 30.0f;
-	enemyDefense = 15.0f;
+	enemyAttack = 40.0f;
+	enemyDefense = 30.0f;
 }
 
 
@@ -1130,7 +1130,7 @@ void Player::ApplyAreaGrowth(AreaType area)
 		}
 
 		// 成長2倍
-		growthMultiplier = 2.0f;
+		growthMultiplier = 2.5f;
 	}
 
 	// ===== 成長処理 =====
@@ -1141,7 +1141,7 @@ void Player::ApplyAreaGrowth(AreaType area)
 		break;
 
 	case AreaType::DefenseGrow:
-		status.defense += 2.0f * growthMultiplier;
+		status.defense += 3.0f * growthMultiplier;
 		break;
 
 	case AreaType::CritRateGrow:

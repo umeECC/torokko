@@ -221,7 +221,7 @@ private:
 	float maxEnemyHP = 0.0f;
 	float enemyAttack = 0.0f;
 	float enemyDefense = 0.0f;
-	static constexpr float BOSS_HP = 500.0f;
+	static constexpr float BOSS_HP = 550.0f;
 
 	Sprite* hpFrameSprite = nullptr;   // 体力ゲージ（枠）
 	Sprite* hpBarSprite = nullptr;   // 体力（中身）
