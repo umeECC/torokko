@@ -36,40 +36,22 @@ void ScenePlay::Finalize()
 
 void ScenePlay::Update(float elapsedTime)
 {
-    rikya++;
+    rikya += elapsedTime;
 
-    if (inputDelay > 0.0f)
-    {
-        inputDelay -= elapsedTime;
-        return;
-    }
+    const float INPUT_INTERVAL = 0.2f;
 
     int maxIndex = (int)tutorialSprites.size() - 1;
 
-    // ←キー：前の画像
-    if (GetAsyncKeyState(VK_LEFT) & 0x8000)
+    if (GetAsyncKeyState(VK_SPACE) & 0x8000)
     {
-        if (rikya >= 10.0f)
-        {
-            rikya = 0.0f;
-            currentIndex--;
-
-            if (currentIndex < 0)
-                currentIndex = 0;
-        }
-    }
-
-    // →キー：次の画像
-    if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
-    {
-        if (rikya >= 10.0f)
+        if (rikya >= INPUT_INTERVAL)
         {
             rikya = 0.0f;
             currentIndex++;
 
             if (currentIndex > maxIndex)
             {
-                // ★タイトルへ遷移
+                // チュートリアル終了 → タイトルへ
                 SceneManager::Instance().ChangeScene(new SceneTitle());
                 return;
             }
