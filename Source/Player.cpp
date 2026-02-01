@@ -113,8 +113,8 @@ void Player::Initialize()
 	hpBarSprite = new Sprite("Data/Sprite/体力.png");
 	attackIconSprite = new Sprite("Data/Sprite/拳.png");
 	defenseIconSprite = new Sprite("Data/Sprite/盾.png");
-	critIconSprite = new Sprite("Data/Sprite/会心ダメ.png");
-	critDamageIconSprite = new Sprite("Data/Sprite/会心.png");
+	critIconSprite = new Sprite("Data/Sprite/会心.png");
+	critDamageIconSprite = new Sprite("Data/Sprite/会心ダメ.png");
 
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/火山.png"), AreaType::AttackGrow });
 	trolleyOptions.push_back({ new Sprite("Data/Sprite/砂漠.png"), AreaType::DefenseGrow });

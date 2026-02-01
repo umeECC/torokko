@@ -27,6 +27,10 @@ public:
 	void DrawGUI() override;
 
 private:
-	Sprite* sprite = nullptr;
+	Sprite* spriteBG = nullptr;
+	Sprite* spriteStart = nullptr;
+	Sprite* spriteTutorial = nullptr;
+	bool choice = true; // true = Start, false = Tutorial
+	int timer = 0;
 	AudioManager* audioManager = nullptr;
 };
