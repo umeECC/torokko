@@ -140,6 +140,7 @@ void Player::Initialize()
 	upArrowSprite = new Sprite("Data/Sprite/上矢印.png");
 	
 	prevStatus = status;
+	bosskau = 0;
 }
 
 // 終了化
@@ -849,11 +850,11 @@ void Player::StartMiniBossBattle()
 	isBossBattle = false;
 	isMiniBossBattle = true;
 
-	maxEnemyHP = 50.0f + currentAreaIndex * 15.0f;
+	maxEnemyHP = 45.0f + currentAreaIndex * 17.0f;
 	enemyHP = maxEnemyHP;
 
-	enemyAttack = 5.0f + currentAreaIndex * 1.0f;
-	enemyDefense = 3.0f + currentAreaIndex * 1.0f;
+	enemyAttack = 5.0f + currentAreaIndex * 1.25f;
+	enemyDefense = 3.0f + currentAreaIndex * 1.25f;
 }
 
 void Player::StartBossBattle()
@@ -1292,6 +1293,7 @@ void Player::UpdateAutoBattle(float elapsedTime)
 	if (status.hp < 0.0f)
 	{
 		SceneManager::Instance().ChangeScene(new SceneOver());
+		bosskau = 0;
 	}
 		
 }
