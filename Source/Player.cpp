@@ -873,8 +873,8 @@ void Player::StartBossBattle()
 	maxEnemyHP = BOSS_HP;
 	enemyHP = maxEnemyHP;
 
-	enemyAttack = 40.0f;
-	enemyDefense = 30.0f;
+	enemyAttack = 50.0f;
+	enemyDefense = 60.0f;
 }
 
 
