@@ -1252,7 +1252,17 @@ void Player::UpdateAutoBattle(float elapsedTime)
 	battleTimer = 0.0f;
 
 	// ===== プレイヤー攻撃 =====
-	float damage = status.attack - enemyDefense;
+	float damage;
+	// クリティカル
+	if ((rand() / (float)RAND_MAX) < status.critRate)
+	{
+		damage = status.attack * status.critDamage;
+	}
+	else
+	{
+		damage = status.attack - enemyDefense;
+	}
+    
 	if (damage < 0.0f) damage = 1.0f;
 
 	// ヒットSE再生
@@ -1265,10 +1275,7 @@ void Player::UpdateAutoBattle(float elapsedTime)
 	}
 
 
-	// クリティカル
-	if ((rand() / (float)RAND_MAX) < status.critRate)
-		damage *= status.critDamage;
-
+	
 	enemyHP -= damage;
 
 	if (enemyHP <= 0.0f)
